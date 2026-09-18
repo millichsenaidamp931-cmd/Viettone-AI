@@ -1,0 +1,10 @@
+{
+  "name": "VietTone AI – Luyện 6 thanh điệu tiếng Việt",
+  "description": "Luyện nghe và phát âm 6 thanh điệu tiếng Việt bằng trí tuệ nhân tạo",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

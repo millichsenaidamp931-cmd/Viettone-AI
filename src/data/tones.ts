@@ -1,0 +1,118 @@
+import { ToneItem } from '../types';
+
+export const VIETNAMESE_TONES: ToneItem[] = [
+  {
+    id: 'ngang',
+    word: 'ma',
+    name: 'Thanh ngang',
+    toneTitle: 'Không dấu / Ngang',
+    symbol: '—',
+    diacriticName: 'Không dấu',
+    pitchDescription: 'Giữ cao độ trung bình ổn định, bằng phẳng, ngân đều.',
+    guideTip: 'Giữ giọng đều và ngang, không lên không xuống (như nốt Sol kéo dài).',
+    color: {
+      bg: 'hover:bg-blue-50/50',
+      border: 'border-blue-200',
+      text: 'text-blue-700',
+      accent: 'bg-blue-600',
+      badgeBg: 'bg-blue-100',
+      badgeText: 'text-blue-800',
+    },
+  },
+  {
+    id: 'sac',
+    word: 'má',
+    name: 'Thanh sắc',
+    toneTitle: 'Dấu sắc ( ´ )',
+    symbol: '↗',
+    diacriticName: 'Dấu sắc',
+    pitchDescription: 'Bắt đầu từ cao độ trung bình rồi vút lên cao nhanh.',
+    guideTip: 'Phát âm nâng cao độ vút lên dốc (từ nốt Sol lên nốt Đố).',
+    color: {
+      bg: 'hover:bg-amber-50/50',
+      border: 'border-amber-200',
+      text: 'text-amber-700',
+      accent: 'bg-amber-600',
+      badgeBg: 'bg-amber-100',
+      badgeText: 'text-amber-800',
+    },
+  },
+  {
+    id: 'huyen',
+    word: 'mà',
+    name: 'Thanh huyền',
+    toneTitle: 'Dấu huyền ( ` )',
+    symbol: '↘',
+    diacriticName: 'Dấu huyền',
+    pitchDescription: 'Bắt đầu ở mức thấp vừa và trầm xuống thấp hơn, dịu êm.',
+    guideTip: 'Thả lỏng cổ họng, hạ giọng trầm xuống dần.',
+    color: {
+      bg: 'hover:bg-emerald-50/50',
+      border: 'border-emerald-200',
+      text: 'text-emerald-700',
+      accent: 'bg-emerald-600',
+      badgeBg: 'bg-emerald-100',
+      badgeText: 'text-emerald-800',
+    },
+  },
+  {
+    id: 'hoi',
+    word: 'mả',
+    name: 'Thanh hỏi',
+    toneTitle: 'Dấu hỏi ( ˀ )',
+    symbol: '↷',
+    diacriticName: 'Dấu hỏi',
+    pitchDescription: 'Hạ giọng xuống thấp rồi lượn nhẹ đi lên lại.',
+    guideTip: 'Hạ giọng xuống một nhịp rồi uốn nhẹ lên như đang thắc mắc.',
+    color: {
+      bg: 'hover:bg-purple-50/50',
+      border: 'border-purple-200',
+      text: 'text-purple-700',
+      accent: 'bg-purple-600',
+      badgeBg: 'bg-purple-100',
+      badgeText: 'text-purple-800',
+    },
+  },
+  {
+    id: 'nga',
+    word: 'mã',
+    name: 'Thanh ngã',
+    toneTitle: 'Dấu ngã ( ~ )',
+    symbol: '⤴',
+    diacriticName: 'Dấu ngã',
+    pitchDescription: 'Lên cao, ngắt thanh môn đột ngột rồi lại vút lên.',
+    guideTip: 'Đẩy giọng lên cao, hơi khựng nghẹn nhẹ ở cổ họng rồi ngân lên.',
+    color: {
+      bg: 'hover:bg-rose-50/50',
+      border: 'border-rose-200',
+      text: 'text-rose-700',
+      accent: 'bg-rose-600',
+      badgeBg: 'bg-rose-100',
+      badgeText: 'text-rose-800',
+    },
+  },
+  {
+    id: 'nang',
+    word: 'mạ',
+    name: 'Thanh nặng',
+    toneTitle: 'Dấu nặng ( . )',
+    symbol: '•',
+    diacriticName: 'Dấu nặng',
+    pitchDescription: 'Rơi thẳng xuống đáy âm vực và ngắt đột ngột, dứt khoát.',
+    guideTip: 'Nhấn giọng mạnh và ngắt ngắn gọn dứt khoát ở đáy cổ họng.',
+    color: {
+      bg: 'hover:bg-indigo-50/50',
+      border: 'border-indigo-200',
+      text: 'text-indigo-700',
+      accent: 'bg-indigo-600',
+      badgeBg: 'bg-indigo-100',
+      badgeText: 'text-indigo-800',
+    },
+  },
+];
+
+export const TONE_NAME_MAP: Record<string, ToneItem> = VIETNAMESE_TONES.reduce((acc, item) => {
+  acc[item.name] = item;
+  acc[item.id] = item;
+  return acc;
+}, {} as Record<string, ToneItem>);
