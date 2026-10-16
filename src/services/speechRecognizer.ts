@@ -114,6 +114,9 @@ export class VietToneSpeechEngine {
   private audioContext: AudioContext | null = null;
   private mediaStream: MediaStream | null = null;
   private analyser: AnalyserNode | null = null;
+  private scriptProcessor: ScriptProcessorNode | null = null;
+  private recordedChunks: Float32Array[] = [];
+  private lastRecordedAudio: { buffer: Float32Array; sampleRate: number } | null = null;
   private fallbackInterval: number | null = null;
   private isFallbackMode: boolean = false;
 
@@ -125,6 +128,10 @@ export class VietToneSpeechEngine {
   }[] = [];
 
   constructor() {}
+
+  public getLastRecordedAudio(): { buffer: Float32Array; sampleRate: number } | null {
+    return this.lastRecordedAudio;
+  }
 
   public getLabels(): string[] {
     if (this.labels.length > 0) return this.labels;
@@ -221,7 +228,8 @@ export class VietToneSpeechEngine {
       return false;
     }
 
-    // Thiết lập Web Audio Analyser để đo volume và phân tích năng lượng âm thanh
+    // Thiết lập Web Audio Analyser để đo volume và bộ ghi nhận buffer âm thanh cho F0
+    this.recordedChunks = [];
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.audioContext = new AudioCtx();
@@ -232,8 +240,23 @@ export class VietToneSpeechEngine {
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 1024;
       source.connect(this.analyser);
+
+      // Thu thập mẫu PCM Float32Array liên tục để phân tích F0 sau khi kết thúc lượt nói
+      this.scriptProcessor = this.audioContext.createScriptProcessor(2048, 1, 1);
+      const muteGain = this.audioContext.createGain();
+      muteGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+
+      this.scriptProcessor.onaudioprocess = (e) => {
+        if (!this.isListeningState) return;
+        const channelData = e.inputBuffer.getChannelData(0);
+        this.recordedChunks.push(new Float32Array(channelData));
+      };
+
+      source.connect(this.scriptProcessor);
+      this.scriptProcessor.connect(muteGain);
+      muteGain.connect(this.audioContext.destination);
     } catch (audioCtxErr) {
-      console.warn('Không thể khởi tạo Web Audio Analyser:', audioCtxErr);
+      console.warn('Không thể khởi tạo Web Audio Analyser/ScriptProcessor:', audioCtxErr);
     }
 
     this.isListeningState = true;
@@ -608,6 +631,34 @@ export class VietToneSpeechEngine {
       } catch (stopErr) {
         console.warn('Lỗi khi gọi recognizer.stopListening:', stopErr);
       }
+    }
+
+    // Gộp tất cả các chunks Float32Array thu được trong lượt phát âm vừa qua
+    if (this.recordedChunks.length > 0 && this.audioContext) {
+      const sampleRate = this.audioContext.sampleRate;
+      const totalLength = this.recordedChunks.reduce((acc, c) => acc + c.length, 0);
+      if (totalLength > 0) {
+        const merged = new Float32Array(totalLength);
+        let offset = 0;
+        for (const chunk of this.recordedChunks) {
+          merged.set(chunk, offset);
+          offset += chunk.length;
+        }
+        this.lastRecordedAudio = {
+          buffer: merged,
+          sampleRate,
+        };
+      }
+    }
+    this.recordedChunks = [];
+
+    if (this.scriptProcessor) {
+      try {
+        this.scriptProcessor.disconnect();
+      } catch (e) {
+        console.warn('Lỗi ngắt kết nối scriptProcessor:', e);
+      }
+      this.scriptProcessor = null;
     }
 
     if (this.mediaStream) {

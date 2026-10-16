@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, Globe, RefreshCw, Layers, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { X, Check, Globe, RefreshCw, Layers, ShieldCheck, AlertTriangle, Mic2, ArrowRight } from 'lucide-react';
 import { TONE_CLASSES } from '../config';
 
 interface ModelSettingsModalProps {
@@ -9,15 +9,17 @@ interface ModelSettingsModalProps {
   onSaveModelUrl: (newUrl: string) => Promise<void>;
   isFallback: boolean;
   modelError?: string;
+  onOpenTeacherModal: () => void;
 }
 
 export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
   isOpen,
   onClose,
-  currentModelUrl,
   onSaveModelUrl,
+  currentModelUrl,
   isFallback,
   modelError,
+  onOpenTeacherModal,
 }) => {
   const [urlInput, setUrlInput] = useState(currentModelUrl);
   const [isSaving, setIsSaving] = useState(false);
@@ -46,17 +48,17 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                Cấu hình Teachable Machine
+                Cài đặt & Quản trị hệ thống
               </h2>
               <p className="text-xs text-slate-500">
-                Google Audio Project – Nhận diện 6 thanh điệu
+                Cấu hình mô hình AI và Mẫu âm thanh tham chiếu chuẩn
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -64,6 +66,37 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
 
         {/* Modal Body */}
         <div className="py-4 space-y-4 text-xs sm:text-sm text-slate-600">
+          {/* Section: Teacher Reference Audio Samples Management */}
+          <div className="p-3.5 bg-gradient-to-r from-red-50 to-amber-50 rounded-2xl border border-red-200/80">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                  <Mic2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+                    Mẫu chuẩn đối chiếu của Giáo viên
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
+                    Ghi âm giọng chuẩn hoặc tải file audio thật cho 6 thanh để học sinh đối chiếu F0.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenTeacherModal();
+                }}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shrink-0 shadow-2xs transition-colors cursor-pointer"
+              >
+                <span>Quản lý</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
           {/* Status Alert */}
           {isFallback ? (
             <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200/80 text-amber-900 flex items-start gap-2.5">
@@ -105,7 +138,7 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm shrink-0 flex items-center gap-1.5 transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Tải lại'}
                 </button>
@@ -149,7 +182,7 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs sm:text-sm transition-colors"
+            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs sm:text-sm transition-colors cursor-pointer"
           >
             Đóng
           </button>
