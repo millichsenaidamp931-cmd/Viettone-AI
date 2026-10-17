@@ -1,11 +1,11 @@
 /**
- * VietTone AI - Version 2.0 (Modern Educational SaaS Dashboard)
- * Luyện nghe và phát âm 6 thanh điệu tiếng Việt
+ * VietTone AI - Version 2.1 (VietTone Motivation Engine & Educational SaaS Dashboard)
+ * Luyện nghe và phát âm 6 thanh điệu tiếng Việt với Người bạn đồng hành Bé Lạc
  * 
  * Bố cục 3 màn hình chuyên biệt:
  * 1. Luyện phát âm (2 cột trên desktop, kết quả tức thì không cần cuộn trang)
  * 2. Lộ trình học tập (4 bước sư phạm, đánh giá đủ 3 lượt, gợi ý thanh tiếp theo)
- * 3. Tiến bộ của tôi (Dashboard phân tích 7 ngày, lịch sử và điểm số F0)
+ * 3. Tiến bộ của tôi (Dashboard phân tích 7 ngày, chuỗi ngày streak, huy hiệu thành tích)
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -20,6 +20,9 @@ import {
   FeedbackAssessment,
   PracticeAttempt,
   ToneRoadmapStat,
+  StreakInfo,
+  MilestoneBadge,
+  MotivationMessage,
 } from './types';
 import { speechEngineInstance, RecognitionCallbackPayload } from './services/speechRecognizer';
 import { PitchEstimator } from './services/pitchEstimator';
@@ -27,6 +30,8 @@ import { ReferenceAudioService } from './services/referenceAudioService';
 import { F0ScoringService } from './services/f0Scoring';
 import { FeedbackAdvisor } from './services/feedbackAdvisor';
 import { ProgressStorage } from './services/progressStorage';
+import { MotivationEngine } from './services/motivationEngine';
+import { isSoundFxEnabled, setSoundFxEnabled, playCelebrationChime } from './utils/audioSynthesizer';
 
 import { Header } from './components/Header';
 import { BottomNav, MainTabType } from './components/BottomNav';
@@ -41,6 +46,8 @@ import { ProgressDashboard } from './components/ProgressDashboard';
 import { ModelSettingsModal } from './components/ModelSettingsModal';
 import { PitchGuideInfo } from './components/PitchGuideInfo';
 import { TeacherReferenceModal } from './components/TeacherReferenceModal';
+import { VietToneCompanion } from './components/VietToneCompanion';
+import { ConfettiEffect } from './components/ConfettiEffect';
 
 import { ShieldCheck, Info } from 'lucide-react';
 
@@ -81,12 +88,31 @@ export default function App() {
   const [f0ScoreResult, setF0ScoreResult] = useState<F0ScoreResult | null>(null);
   const [feedbackAssessment, setFeedbackAssessment] = useState<FeedbackAssessment | null>(null);
 
-  // Tiến trình và lịch sử lưu trữ cục bộ
+  // Tiến trình và lịch sử lưu trữ cục bộ (100% localStorage)
   const [historyAttempts, setHistoryAttempts] = useState<PracticeAttempt[]>([]);
   const [roadmapStats, setRoadmapStats] = useState<ToneRoadmapStat[]>([]);
   const [recent7Days, setRecent7Days] = useState<
     Array<{ dateStr: string; displayDate: string; attemptsCount: number; avgScore: number | null }>
   >([]);
+  const [streakInfo, setStreakInfo] = useState<StreakInfo>({
+    currentStreak: 0,
+    isActiveToday: false,
+    lastActiveDate: null,
+    totalDaysActive: 0,
+  });
+  const [milestoneBadges, setMilestoneBadges] = useState<MilestoneBadge[]>([]);
+
+  // Motivation Engine & Gamification States
+  const [soundFxEnabled, setSoundFxEnabledState] = useState<boolean>(isSoundFxEnabled());
+  const [motivationMessage, setMotivationMessage] = useState<MotivationMessage>(() =>
+    MotivationEngine.getReadyMessage(VIETNAMESE_TONES[4], {
+      currentStreak: 0,
+      isActiveToday: false,
+      lastActiveDate: null,
+      totalDaysActive: 0,
+    })
+  );
+  const [isConfettiActive, setIsConfettiActive] = useState<boolean>(false);
 
   const listeningTimerRef = useRef<number | null>(null);
   const speechDetectedRef = useRef<boolean>(false);
@@ -96,9 +122,14 @@ export default function App() {
     const attempts = ProgressStorage.getAllAttempts();
     const stats = ProgressStorage.getToneStats();
     const days = ProgressStorage.getRecent7DaysProgress();
+    const streak = ProgressStorage.getStreakInfo();
+    const badges = ProgressStorage.getMilestoneBadges();
+
     setHistoryAttempts(attempts);
     setRoadmapStats(stats);
     setRecent7Days(days);
+    setStreakInfo(streak);
+    setMilestoneBadges(badges);
   }, []);
 
   // Cập nhật mẫu tham chiếu khi đổi thanh
@@ -135,6 +166,13 @@ export default function App() {
     };
   }, [initModel, modelUrl, refreshStorageData]);
 
+  // Cập nhật thông điệp sẵn sàng khi streak hoặc selectedTone thay đổi (nếu chưa có lượt đọc gần đây)
+  useEffect(() => {
+    if (!feedbackAssessment) {
+      setMotivationMessage(MotivationEngine.getReadyMessage(selectedTone, streakInfo));
+    }
+  }, [selectedTone, streakInfo, feedbackAssessment]);
+
   // 2. Xử lý khung dữ liệu nhận diện liên tục từ speech-commands
   const handleFrameUpdate = useCallback((payload: RecognitionCallbackPayload) => {
     setAudioVolume(payload.audioVolume);
@@ -152,7 +190,7 @@ export default function App() {
     }
   }, []);
 
-  // 3. Kết thúc một đợt đọc và tổng hợp F0 + Điểm số + Phản hồi
+  // 3. Kết thúc một đợt đọc và tổng hợp F0 + Điểm số + Phản hồi + Motivation Engine
   const finalizeRecognition = useCallback(async () => {
     await speechEngineInstance.stopListening();
     setIsListening(false);
@@ -253,6 +291,25 @@ export default function App() {
     };
 
     ProgressStorage.saveAttempt(attempt);
+
+    // G. Motivation Engine: Đánh giá và chọn thông điệp động viên
+    const allUpdatedAttempts = ProgressStorage.getAllAttempts();
+    const updatedStreak = ProgressStorage.getStreakInfo();
+    const motMessage = MotivationEngine.evaluateAttempt(attempt, allUpdatedAttempts, updatedStreak);
+    setMotivationMessage(motMessage);
+
+    // Kích hoạt hiệu ứng ăn mừng nhẹ nhàng và âm thanh chimes
+    if (motMessage.celebrate) {
+      setIsConfettiActive(true);
+      if (motMessage.state === 'ten_attempts' || motMessage.state === 'three_day_streak') {
+        playCelebrationChime('milestone');
+      } else {
+        playCelebrationChime('success');
+      }
+    } else {
+      playCelebrationChime('encourage');
+    }
+
     refreshStorageData();
   }, [selectedTone, refreshStorageData]);
 
@@ -264,6 +321,7 @@ export default function App() {
     setFeedbackAssessment(null);
     setTopToneName(null);
     setTopToneScore(0);
+    setIsConfettiActive(false);
     speechDetectedRef.current = false;
 
     const started = await speechEngineInstance.startListening(
@@ -293,10 +351,12 @@ export default function App() {
   const handleNextTone = () => {
     const currentIndex = VIETNAMESE_TONES.findIndex((t) => t.id === selectedTone.id);
     const nextIndex = (currentIndex + 1) % VIETNAMESE_TONES.length;
-    setSelectedTone(VIETNAMESE_TONES[nextIndex]);
+    const nextTone = VIETNAMESE_TONES[nextIndex];
+    setSelectedTone(nextTone);
     setUserContour(null);
     setF0ScoreResult(null);
     setFeedbackAssessment(null);
+    setMotivationMessage(MotivationEngine.getReadyMessage(nextTone, streakInfo));
   };
 
   const handleSelectToneById = (toneId: ToneId) => {
@@ -307,6 +367,7 @@ export default function App() {
       setUserContour(null);
       setF0ScoreResult(null);
       setFeedbackAssessment(null);
+      setMotivationMessage(MotivationEngine.getReadyMessage(tone, streakInfo));
       setActiveTab('practice');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -315,12 +376,32 @@ export default function App() {
   const handleClearHistory = () => {
     ProgressStorage.clearHistory();
     refreshStorageData();
+    setMotivationMessage(
+      MotivationEngine.getReadyMessage(selectedTone, {
+        currentStreak: 0,
+        isActiveToday: false,
+        lastActiveDate: null,
+        totalDaysActive: 0,
+      })
+    );
+  };
+
+  const handleToggleSoundFx = () => {
+    const next = !soundFxEnabled;
+    setSoundFxEnabled(next);
+    setSoundFxEnabledState(next);
   };
 
   const nextRecommendation = ProgressStorage.getNextRecommendedTone();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-['Be_Vietnam_Pro',sans-serif] pb-20 md:pb-8">
+      {/* Hiệu ứng pháo hoa hoa giấy ăn mừng nhẹ nhàng */}
+      <ConfettiEffect
+        active={isConfettiActive}
+        onComplete={() => setIsConfettiActive(false)}
+      />
+
       {/* SaaS Navigation Header */}
       <Header
         activeTab={activeTab}
@@ -329,6 +410,9 @@ export default function App() {
         onOpenGuide={() => setIsGuideOpen(true)}
         isModelReady={isModelReady}
         isFallback={isFallbackMode}
+        streakInfo={streakInfo}
+        soundFxEnabled={soundFxEnabled}
+        onToggleSoundFx={handleToggleSoundFx}
       />
 
       {/* Main SaaS Content Area */}
@@ -336,8 +420,8 @@ export default function App() {
         {/* ================= TAB 1: LUYỆN PHÁT ÂM (STUDIO - 2 CỘT DESKTOP) ================= */}
         {activeTab === 'practice' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* CỘT TRÁI (LỰA CHỌN, MICROPHONE, VÀ PHẢN HỒI LỖI CẢI THIỆN) */}
-            <div className="lg:col-span-5 space-y-4">
+            {/* CỘT TRÁI (LỰA CHỌN, ĐỒNG HÀNH BÉ LẠC, MICROPHONE, VÀ PHẢN HỒI SƯ PHẠM) */}
+            <div className="lg:col-span-5 space-y-3.5">
               {/* Compact Tone Selector */}
               <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs">
                 <ToneSelector
@@ -348,10 +432,17 @@ export default function App() {
                     setUserContour(null);
                     setF0ScoreResult(null);
                     setFeedbackAssessment(null);
+                    setMotivationMessage(MotivationEngine.getReadyMessage(tone, streakInfo));
                   }}
                   disabled={isListening}
                 />
               </div>
+
+              {/* VietTone Companion – Người bạn đồng hành Bé Lạc */}
+              <VietToneCompanion
+                message={motivationMessage}
+                streakCount={streakInfo.currentStreak}
+              />
 
               {/* Large Microphone Controller */}
               <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
@@ -414,6 +505,7 @@ export default function App() {
             <LearningRoadmap
               stats={roadmapStats}
               nextRecommended={nextRecommendation}
+              streakInfo={streakInfo}
               onSelectToneId={handleSelectToneById}
             />
           </div>
@@ -426,6 +518,8 @@ export default function App() {
               attempts={historyAttempts}
               stats={roadmapStats}
               recent7Days={recent7Days}
+              streakInfo={streakInfo}
+              badges={milestoneBadges}
               onClearHistory={handleClearHistory}
               onSelectAttemptTone={handleSelectToneById}
             />

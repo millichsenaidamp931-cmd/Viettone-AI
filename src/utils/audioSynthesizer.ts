@@ -112,3 +112,65 @@ export function playToneAudio(toneId: string) {
     console.warn('Audio synthesis not supported or blocked:', e);
   }
 }
+
+const SOUND_FX_KEY = 'viettone_sound_fx_enabled';
+
+export function isSoundFxEnabled(): boolean {
+  try {
+    const val = localStorage.getItem(SOUND_FX_KEY);
+    return val !== 'false'; // Mặc định bật
+  } catch {
+    return true;
+  }
+}
+
+export function setSoundFxEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(SOUND_FX_KEY, enabled ? 'true' : 'false');
+  } catch {
+    // Ignore error
+  }
+}
+
+/**
+ * Phát âm thanh chúc mừng / khích lệ du dương bằng Web Audio API
+ * Sử dụng chuỗi thang âm ngũ cung ấm áp, không cần bất kỳ file âm thanh nào từ bên ngoài
+ */
+export function playCelebrationChime(type: 'success' | 'milestone' | 'encourage' = 'success'): void {
+  if (!isSoundFxEnabled()) return;
+
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    // Chuỗi nốt ngũ cung (C5, D5, E5, G5, A5) mang âm sắc Việt trong trẻo
+    const notes =
+      type === 'milestone'
+        ? [523.25, 659.25, 783.99, 1046.5] // C5 - E5 - G5 - C6 (rực rỡ)
+        : type === 'success'
+        ? [523.25, 659.25, 783.99] // C5 - E5 - G5 (vui tươi)
+        : [587.33, 659.25]; // D5 - E5 (nhẹ nhàng, ấm áp)
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+
+      gain.gain.setValueAtTime(0.001, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + idx * 0.1 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.1 + 0.45);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 0.46);
+    });
+  } catch (e) {
+    console.warn('Could not play celebration sound:', e);
+  }
+}

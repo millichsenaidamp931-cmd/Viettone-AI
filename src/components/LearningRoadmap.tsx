@@ -3,31 +3,36 @@
  * 
  * Hướng dẫn bài luyện 4 bước, đề xuất thanh cần luyện tiếp theo và
  * chỉ đưa ra nhận xét sơ bộ khi có đủ tối thiểu 3 lượt hợp lệ cho từng thanh.
+ * Kết hợp thông điệp định hướng từ người bạn đồng hành Bé Lạc.
  */
 
 import React from 'react';
-import { ToneRoadmapStat, ToneId } from '../types';
-import { Compass, Volume2, BookOpen, ArrowRight, HelpCircle, Sparkles } from 'lucide-react';
+import { ToneRoadmapStat, ToneId, StreakInfo } from '../types';
+import { Compass, Volume2, BookOpen, ArrowRight, HelpCircle, Sparkles, Flame } from 'lucide-react';
 import { playToneAudio } from '../utils/audioSynthesizer';
 
 interface LearningRoadmapProps {
   stats: ToneRoadmapStat[];
   nextRecommended: { toneId: ToneId; reason: string };
+  streakInfo: StreakInfo;
   onSelectToneId: (toneId: ToneId) => void;
 }
 
 export const LearningRoadmap: React.FC<LearningRoadmapProps> = ({
   stats,
   nextRecommended,
+  streakInfo,
   onSelectToneId,
 }) => {
+  const practicedCount = stats.filter((s) => s.totalAttempts > 0).length;
+
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs my-4">
+    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xs my-3 sm:my-4">
       {/* Tiêu đề khu vực */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-            <Compass className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+            <Compass className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-slate-900">
@@ -40,7 +45,7 @@ export const LearningRoadmap: React.FC<LearningRoadmapProps> = ({
         </div>
 
         {/* Thanh đề xuất luyện tiếp theo */}
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 px-3.5 py-2 rounded-xl text-xs">
+        <div className="inline-flex items-center gap-2.5 bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 px-3.5 py-2 rounded-xl text-xs shadow-2xs">
           <Sparkles className="w-4 h-4 text-red-600 shrink-0" />
           <div className="flex-1">
             <span className="text-slate-500 text-[10px] uppercase font-bold block">
@@ -53,11 +58,37 @@ export const LearningRoadmap: React.FC<LearningRoadmapProps> = ({
           <button
             type="button"
             onClick={() => onSelectToneId(nextRecommended.toneId)}
-            className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors cursor-pointer shrink-0"
           >
             Luyện ngay
           </button>
         </div>
+      </div>
+
+      {/* Thẻ bạn đồng hành khích lệ lộ trình */}
+      <div className="mb-5 p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-amber-50/80 via-orange-50/60 to-red-50/80 border border-amber-200/80 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-black text-sm">
+            🦜
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-900">
+              Mục tiêu thám hiểm: Đã trải nghiệm {practicedCount}/6 thanh điệu
+            </p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              {practicedCount === 6
+                ? 'Tuyệt vời! Bạn đã trải nghiệm trọn vẹn cả 6 thanh điệu tiếng Việt!'
+                : `Hãy thử sức với các thanh còn lại để mở khóa huy hiệu "Lục Thanh Trọn Vẹn" nhé!`}
+            </p>
+          </div>
+        </div>
+
+        {streakInfo.currentStreak > 0 && (
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white/90 rounded-lg border border-orange-200 text-xs font-bold text-orange-700 shrink-0">
+            <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
+            <span>Chuỗi {streakInfo.currentStreak} ngày</span>
+          </div>
+        )}
       </div>
 
       {/* Trình tự bài luyện 4 bước chuẩn sư phạm */}
@@ -145,7 +176,7 @@ export const LearningRoadmap: React.FC<LearningRoadmapProps> = ({
                   <button
                     type="button"
                     onClick={() => playToneAudio(s.toneId)}
-                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 transition-colors"
+                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 transition-colors cursor-pointer"
                     title="Nghe mẫu"
                   >
                     <Volume2 className="w-3.5 h-3.5" />

@@ -2,11 +2,12 @@
  * VietTone AI - Dashboard Tiến bộ của tôi (Personal Progress Dashboard)
  * 
  * Lưu trữ 100% trên trình duyệt (localStorage), không sinh dữ liệu giả.
- * Hiển thị thống kê tổng quan, biểu đồ 7 ngày, điểm 6 thanh, danh sách lịch sử và hộp xác nhận xóa.
+ * Hiển thị thống kê tổng quan, chuỗi ngày rèn luyện (Streak), huy hiệu thành tích,
+ * biểu đồ 7 ngày, điểm 6 thanh, danh sách lịch sử và hộp xác nhận xóa.
  */
 
 import React, { useState } from 'react';
-import { PracticeAttempt, ToneRoadmapStat } from '../types';
+import { PracticeAttempt, ToneRoadmapStat, StreakInfo, MilestoneBadge } from '../types';
 import {
   TrendingUp,
   Calendar,
@@ -15,7 +16,11 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
+  Flame,
+  Award,
+  Sparkles,
 } from 'lucide-react';
+import { BadgesShowcase } from './BadgesShowcase';
 
 interface ProgressDashboardProps {
   attempts: PracticeAttempt[];
@@ -26,6 +31,8 @@ interface ProgressDashboardProps {
     attemptsCount: number;
     avgScore: number | null;
   }>;
+  streakInfo: StreakInfo;
+  badges: MilestoneBadge[];
   onClearHistory: () => void;
   onSelectAttemptTone: (toneId: PracticeAttempt['targetToneId']) => void;
 }
@@ -34,6 +41,8 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
   attempts,
   stats,
   recent7Days,
+  streakInfo,
+  badges,
   onClearHistory,
   onSelectAttemptTone,
 }) => {
@@ -57,19 +66,19 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
     totalAttemptsCount > 0 ? Math.round((totalMatchesCount / totalAttemptsCount) * 100) : 0;
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs my-4">
+    <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xs my-3 sm:my-4 space-y-6">
       {/* Tiêu đề & Nút xóa lịch sử */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-            <TrendingUp className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-slate-900">
               Tiến bộ của tôi
             </h2>
             <p className="text-xs text-slate-500">
-              Nhật ký rèn luyện được lưu trữ bảo mật cục bộ trên thiết bị của bạn
+              Nhật ký rèn luyện và cột mốc thói quen được lưu trữ bảo mật cục bộ trên thiết bị của bạn
             </p>
           </div>
         </div>
@@ -86,6 +95,45 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
         )}
       </div>
 
+      {/* Thẻ chuỗi ngày học tập (Streak Banner) */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-red-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-red-600 flex items-center justify-center text-white shadow-sm shrink-0">
+            <Flame className="w-7 h-7 fill-amber-300 text-amber-200 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg sm:text-xl font-black text-slate-900">
+                Chuỗi {streakInfo.currentStreak} ngày rèn luyện
+              </span>
+              {streakInfo.isActiveToday ? (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  Đã luyện hôm nay
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  Luyện ngay để giữ chuỗi!
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-0.5">
+              {streakInfo.currentStreak >= 3
+                ? 'Thật tuyệt vời! Bạn đang duy trì thói quen học tập rất đều đặn và kiên trì.'
+                : streakInfo.currentStreak > 0
+                ? 'Mỗi ngày dành 3-5 phút luyện phát âm sẽ giúp tai nghe và cơ quan phát âm hòa nhịp tự nhiên.'
+                : 'Hãy bắt đầu lượt đọc đầu tiên hôm nay để thắp sáng chuỗi ngày rèn luyện nhé!'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-center shrink-0 text-xs text-slate-600 font-medium">
+          <span className="px-2.5 py-1 rounded-xl bg-white/80 border border-orange-200 font-bold text-orange-800">
+            Tổng {streakInfo.totalDaysActive} ngày học tích lũy
+          </span>
+        </div>
+      </div>
+
       {/* Trạng thái trống (Zero State) - Không tạo dữ liệu giả */}
       {totalAttemptsCount === 0 ? (
         <div className="text-center py-10 px-4 bg-slate-50 rounded-xl border border-slate-200/60">
@@ -96,7 +144,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
             Chưa có lịch sử luyện tập nào
           </h3>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-            Hãy bắt đầu bằng cách chọn một thanh điệu ở trên và bấm &ldquo;🎙 Bắt đầu đọc&rdquo;. Toàn bộ tiến trình sẽ được ghi lại tự động trên trình duyệt này.
+            Hãy bắt đầu bằng cách chọn một thanh điệu và bấm &ldquo;🎙 Bắt đầu đọc&rdquo;. Toàn bộ tiến trình, điểm F0 và huy hiệu sẽ được ghi lại tự động và bảo mật trên thiết bị này.
           </p>
         </div>
       ) : (
@@ -181,6 +229,9 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
             </div>
           </div>
 
+          {/* Bảng Cột Mốc & Huy Hiệu (Badges Showcase) */}
+          <BadgesShowcase badges={badges} />
+
           {/* Điểm F0 trung bình theo 6 thanh điệu */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5">
@@ -215,13 +266,27 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5">
               Lịch sử các lượt đọc gần đây
             </h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {attempts.slice(0, 10).map((a) => {
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {attempts.slice(0, 15).map((a, idx) => {
                 const dateObj = new Date(a.timestamp);
                 const timeString = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj
                   .getMinutes()
                   .toString()
                   .padStart(2, '0')}`;
+
+                // Kiểm tra xem lượt này có cải thiện F0 so với lượt trước đó của cùng thanh không
+                let improvementDelta: number | null = null;
+                if (typeof a.f0Score === 'number') {
+                  const prevAttempt = attempts.slice(idx + 1).find(
+                    (p) => p.targetToneId === a.targetToneId && typeof p.f0Score === 'number'
+                  );
+                  if (prevAttempt && typeof prevAttempt.f0Score === 'number') {
+                    const delta = a.f0Score - prevAttempt.f0Score;
+                    if (delta >= 5) {
+                      improvementDelta = delta;
+                    }
+                  }
+                }
 
                 return (
                   <div
@@ -235,14 +300,20 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
                         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                       )}
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-slate-900">
-                            Mục tiêu: {a.targetWord} ({a.targetToneName})
+                            {a.targetWord} ({a.targetToneName})
                           </span>
                           <span className="text-slate-400">•</span>
                           <span className="text-slate-600">
                             AI: {a.predictedToneName || 'Không rõ'}
                           </span>
+
+                          {improvementDelta !== null && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <Sparkles className="w-2.5 h-2.5" />+{improvementDelta} F0
+                            </span>
+                          )}
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5">{a.adviceSummary}</p>
                       </div>
@@ -279,7 +350,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
       <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
         <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
         <span>
-          Dữ liệu tiến trình được lưu trữ hoàn toàn trên trình duyệt của thiết bị này và có thể mất nếu bạn xóa dữ liệu duyệt web.
+          Dữ liệu tiến trình được lưu trữ hoàn toàn trên trình duyệt của thiết bị này và không truyền tải lên máy chủ.
         </span>
       </div>
 
@@ -294,7 +365,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({
               Xóa toàn bộ lịch sử luyện tập?
             </h3>
             <p className="text-xs text-slate-600 mt-1.5">
-              Hành động này sẽ xóa tất cả các lượt đọc, điểm F0 và lộ trình đã lưu trên thiết bị này. Bạn không thể hoàn tác sau khi xóa.
+              Hành động này sẽ xóa tất cả các lượt đọc, chuỗi ngày rèn luyện và huy hiệu đã lưu trên thiết bị này. Bạn không thể hoàn tác sau khi xóa.
             </p>
 
             <div className="flex items-center justify-end gap-2 mt-5">

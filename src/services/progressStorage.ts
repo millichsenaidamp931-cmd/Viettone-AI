@@ -209,4 +209,205 @@ export class ProgressStorage {
       reason: 'Luyện tập củng cố thanh ngã (thanh có độ lượn và ngắt âm thanh môn đặc sắc)',
     };
   }
+
+  /**
+   * Tính toán chuỗi ngày luyện tập liên tục (Streak) dựa 100% trên lịch sử thực tế
+   */
+  public static getStreakInfo(): {
+    currentStreak: number;
+    isActiveToday: boolean;
+    lastActiveDate: string | null;
+    totalDaysActive: number;
+  } {
+    const attempts = this.getAllAttempts();
+    if (attempts.length === 0) {
+      return {
+        currentStreak: 0,
+        isActiveToday: false,
+        lastActiveDate: null,
+        totalDaysActive: 0,
+      };
+    }
+
+    // Lấy tập hợp các ngày duy nhất có luyện tập, sắp xếp giảm dần
+    const uniqueDates = Array.from(new Set(attempts.map((a) => a.dateStr))).sort().reverse();
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+      now.getDate()
+    ).padStart(2, '0')}`;
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+    const isActiveToday = uniqueDates.includes(todayStr);
+    const lastActiveDate = uniqueDates[0] || null;
+
+    let streak = 0;
+    let checkDate = new Date(now);
+
+    // Nếu hôm nay chưa luyện, kiểm tra từ hôm qua
+    if (!isActiveToday) {
+      if (uniqueDates.includes(yesterdayStr)) {
+        checkDate = yesterday;
+      } else {
+        // Cả hôm nay và hôm qua đều chưa luyện => streak = 0
+        return {
+          currentStreak: 0,
+          isActiveToday: false,
+          lastActiveDate,
+          totalDaysActive: uniqueDates.length,
+        };
+      }
+    }
+
+    // Đếm lùi liên tục
+    while (true) {
+      const year = checkDate.getFullYear();
+      const month = String(checkDate.getMonth() + 1).padStart(2, '0');
+      const day = String(checkDate.getDate()).padStart(2, '0');
+      const dStr = `${year}-${month}-${day}`;
+
+      if (uniqueDates.includes(dStr)) {
+        streak += 1;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return {
+      currentStreak: streak,
+      isActiveToday,
+      lastActiveDate,
+      totalDaysActive: uniqueDates.length,
+    };
+  }
+
+  /**
+   * Tính toán danh sách huy hiệu cột mốc thành tích (Milestone Badges)
+   * Tuyệt đối không tạo dữ liệu giả lập
+   */
+  public static getMilestoneBadges() {
+    const attempts = this.getAllAttempts();
+    const streakInfo = this.getStreakInfo();
+    const totalCount = attempts.length;
+
+    // Danh sách các thanh đã từng luyện
+    const practicedTones = new Set(attempts.map((a) => a.targetToneId));
+
+    // Điểm F0 cao nhất từng đạt
+    const f0Scores = attempts
+      .map((a) => a.f0Score)
+      .filter((s): s is number => typeof s === 'number' && s >= 0);
+    const maxF0 = f0Scores.length > 0 ? Math.max(...f0Scores) : 0;
+
+    // Kiểm tra xem có lần nào cải thiện F0 >= 5 điểm không
+    let maxF0Improvement = 0;
+    for (let i = 0; i < attempts.length; i++) {
+      const cur = attempts[i];
+      if (typeof cur.f0Score !== 'number') continue;
+
+      // Tìm lượt trước đó của cùng thanh
+      const prev = attempts.slice(i + 1).find(
+        (a) => a.targetToneId === cur.targetToneId && typeof a.f0Score === 'number'
+      );
+      if (prev && typeof prev.f0Score === 'number') {
+        const delta = cur.f0Score - prev.f0Score;
+        if (delta > maxF0Improvement) {
+          maxF0Improvement = delta;
+        }
+      }
+    }
+
+    const badges = [
+      {
+        id: 'first_step',
+        title: 'Bước Chân Đầu Tiên',
+        description: 'Hoàn thành lượt luyện âm điệu đầu tiên',
+        iconName: 'sprout',
+        isUnlocked: totalCount >= 1,
+        unlockedDate: attempts[attempts.length - 1]?.dateStr,
+        currentValue: Math.min(totalCount, 1),
+        targetValue: 1,
+        category: 'habit' as const,
+      },
+      {
+        id: 'f0_progress',
+        title: 'Tiến Bộ Vượt Bậc',
+        description: 'Cải thiện đường cao độ F0 tăng từ 5 điểm trở lên',
+        iconName: 'trending-up',
+        isUnlocked: maxF0Improvement >= 5,
+        currentValue: Math.min(maxF0Improvement, 5),
+        targetValue: 5,
+        category: 'f0' as const,
+      },
+      {
+        id: 'f0_expert',
+        title: 'Độ Tương Đồng Cao',
+        description: 'Đạt điểm tương đồng F0 từ 75/100 trở lên',
+        iconName: 'target',
+        isUnlocked: maxF0 >= 75,
+        currentValue: Math.min(maxF0, 75),
+        targetValue: 75,
+        category: 'f0' as const,
+      },
+      {
+        id: 'three_tones',
+        title: 'Nhà Thám Hiểm Thanh Điệu',
+        description: 'Đã luyện tập từ 3 thanh điệu khác nhau',
+        iconName: 'compass',
+        isUnlocked: practicedTones.size >= 3,
+        currentValue: Math.min(practicedTones.size, 3),
+        targetValue: 3,
+        category: 'tones' as const,
+      },
+      {
+        id: 'all_six_tones',
+        title: 'Lục Thanh Trọn Vẹn',
+        description: 'Trải nghiệm đủ cả 6 thanh điệu tiếng Việt',
+        iconName: 'crown',
+        isUnlocked: practicedTones.size >= 6,
+        currentValue: practicedTones.size,
+        targetValue: 6,
+        category: 'tones' as const,
+      },
+      {
+        id: 'streak_3_days',
+        title: 'Bền Bỉ 3 Ngày',
+        description: 'Duy trì chuỗi luyện tập 3 ngày liên tiếp',
+        iconName: 'flame',
+        isUnlocked: streakInfo.currentStreak >= 3,
+        currentValue: Math.min(streakInfo.currentStreak, 3),
+        targetValue: 3,
+        category: 'habit' as const,
+      },
+      {
+        id: 'ten_attempts',
+        title: 'Chăm Chỉ Rèn Luyện',
+        description: 'Tích luỹ đạt mốc 10 lượt luyện tập',
+        iconName: 'award',
+        isUnlocked: totalCount >= 10,
+        currentValue: Math.min(totalCount, 10),
+        targetValue: 10,
+        category: 'persistence' as const,
+      },
+      {
+        id: 'master_twenty_five',
+        title: 'Chiến Binh Thanh Âm',
+        description: 'Tích luỹ đạt mốc 25 lượt luyện tập',
+        iconName: 'shield',
+        isUnlocked: totalCount >= 25,
+        currentValue: Math.min(totalCount, 25),
+        targetValue: 25,
+        category: 'persistence' as const,
+      },
+    ];
+
+    return badges;
+  }
 }

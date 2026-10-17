@@ -1,6 +1,7 @@
 import React from 'react';
-import { Settings2, HelpCircle, Mic, Compass, TrendingUp } from 'lucide-react';
+import { Settings2, HelpCircle, Mic, Compass, TrendingUp, Flame, Volume2, VolumeX } from 'lucide-react';
 import { MainTabType } from './BottomNav';
+import { StreakInfo } from '../types';
 
 interface HeaderProps {
   activeTab: MainTabType;
@@ -9,6 +10,9 @@ interface HeaderProps {
   onOpenGuide: () => void;
   isModelReady: boolean;
   isFallback: boolean;
+  streakInfo: StreakInfo;
+  soundFxEnabled: boolean;
+  onToggleSoundFx: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,12 +22,17 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGuide,
   isModelReady,
   isFallback,
+  streakInfo,
+  soundFxEnabled,
+  onToggleSoundFx,
 }) => {
   const tabs = [
     { id: 'practice' as MainTabType, label: 'Luyện phát âm', icon: Mic },
     { id: 'roadmap' as MainTabType, label: 'Lộ trình học tập', icon: Compass },
     { id: 'progress' as MainTabType, label: 'Tiến bộ của tôi', icon: TrendingUp },
   ];
+
+  const streakDays = streakInfo.currentStreak;
 
   return (
     <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
@@ -39,11 +48,11 @@ export const Header: React.FC<HeaderProps> = ({
                 VietTone <span className="text-red-600">AI</span>
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 bg-red-50 text-red-700 border border-red-200/60 rounded">
-                v2.0
+                v2.1
               </span>
             </div>
             <p className="text-[11px] text-slate-500 hidden sm:block font-medium">
-              Luyện 6 thanh điệu tiếng Việt
+              Đồng hành luyện 6 thanh điệu tiếng Việt
             </p>
           </div>
         </div>
@@ -73,7 +82,46 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Right Action Controls */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Chuỗi ngày rèn luyện (Streak Counter) */}
+          <div
+            onClick={() => onChangeTab('progress')}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              streakDays > 0
+                ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 shadow-2xs'
+                : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+            }`}
+            title={
+              streakDays > 0
+                ? `Chuỗi ${streakDays} ngày luyện tập! ${
+                    streakInfo.isActiveToday ? 'Đã hoàn thành hôm nay' : 'Luyện ngay để giữ chuỗi'
+                  }`
+                : 'Luyện tập mỗi ngày để xây dựng chuỗi ngày rèn luyện'
+            }
+          >
+            <Flame
+              className={`w-4 h-4 ${
+                streakDays > 0 ? 'text-orange-600 fill-orange-500 animate-pulse' : 'text-slate-400'
+              }`}
+            />
+            <span>{streakDays}</span>
+            <span className="hidden sm:inline text-[11px] font-medium text-slate-500">ngày</span>
+          </div>
+
+          {/* Âm thanh hiệu ứng khích lệ (Sound FX Toggle) */}
+          <button
+            type="button"
+            onClick={onToggleSoundFx}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              soundFxEnabled
+                ? 'text-amber-600 hover:bg-amber-50'
+                : 'text-slate-400 hover:bg-slate-100'
+            }`}
+            title={soundFxEnabled ? 'Âm thanh hiệu ứng: Đang bật' : 'Âm thanh hiệu ứng: Đã tắt'}
+          >
+            {soundFxEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </button>
+
           {/* AI Model Status Badge */}
           <button
             type="button"

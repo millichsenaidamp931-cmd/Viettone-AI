@@ -144,3 +144,51 @@ export interface ToneRoadmapStat {
   observation: string;
   recommendedAction: string;
 }
+
+// =================== VERSION 2.1 MOTIVATION ENGINE TYPES ===================
+
+export type MotivationStateType =
+  | 'first_attempt'       // Trạng thái A: Hoàn thành lượt đầu tiên
+  | 'ai_recognized'       // Trạng thái B: AI nhận diện rõ thanh mục tiêu
+  | 'ai_uncertain'        // Trạng thái C: AI chưa chắc chắn
+  | 'f0_improved'         // Trạng thái D: Điểm F0 được cải thiện (>= 5 điểm)
+  | 'ten_attempts'        // Trạng thái E: Hoàn thành 10 lượt luyện
+  | 'three_day_streak'    // Trạng thái F: Luyện tập 3 ngày liên tiếp
+  | 'repeated_uncertain'  // Trạng thái G: Luyện nhiều lần nhưng AI vẫn chưa chắc chắn
+  | 'ready';              // Trạng thái sẵn sàng trước khi ghi âm
+
+export type MascotMood = 'excited' | 'cheering' | 'comforting' | 'proud' | 'focused' | 'ready';
+
+/** Thông điệp động viên do MotivationEngine lựa chọn */
+export interface MotivationMessage {
+  state: MotivationStateType;
+  headline: string;
+  subtext: string;
+  f0Delta?: number;
+  prevScore?: number;
+  currentScore?: number;
+  mascotMood: MascotMood;
+  celebrate: boolean;
+  timestamp?: number;
+}
+
+/** Thông tin chuỗi ngày luyện tập (Streak) */
+export interface StreakInfo {
+  currentStreak: number;
+  isActiveToday: boolean;
+  lastActiveDate: string | null;
+  totalDaysActive: number;
+}
+
+/** Huy hiệu cột mốc thành tích */
+export interface MilestoneBadge {
+  id: string;
+  title: string;
+  description: string;
+  iconName: string;
+  isUnlocked: boolean;
+  unlockedDate?: string;
+  currentValue: number;
+  targetValue: number;
+  category: 'habit' | 'persistence' | 'f0' | 'tones';
+}
