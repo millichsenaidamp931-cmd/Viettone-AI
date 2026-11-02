@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, Globe, RefreshCw, Layers, ShieldCheck, AlertTriangle, Mic2, ArrowRight } from 'lucide-react';
+import { X, Check, Globe, RefreshCw, Layers, ShieldCheck, AlertTriangle, Mic2, ArrowRight, GitBranch } from 'lucide-react';
 import { TONE_CLASSES } from '../config';
 
 interface ModelSettingsModalProps {
@@ -10,6 +10,7 @@ interface ModelSettingsModalProps {
   isFallback: boolean;
   modelError?: string;
   onOpenTeacherModal: () => void;
+  onOpenArchitecture?: () => void;
 }
 
 export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
@@ -20,6 +21,7 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
   isFallback,
   modelError,
   onOpenTeacherModal,
+  onOpenArchitecture,
 }) => {
   const [urlInput, setUrlInput] = useState(currentModelUrl);
   const [isSaving, setIsSaving] = useState(false);
@@ -96,6 +98,44 @@ export const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Section: System Architecture & Code Flow Diagram */}
+          {onOpenArchitecture && (
+            <div className="p-3.5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl border border-slate-700">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5 border border-cyan-500/30">
+                    <GitBranch className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-white text-xs sm:text-sm">
+                        Sơ đồ Luồng Xử lý & Kiến trúc Code
+                      </h3>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+                        Hybrid
+                      </span>
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
+                      Xem biểu đồ luồng: VAD tiền xử lý, Teachable Machine, YIN F0 và bộ dung hợp Hybrid Tone Engine.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenArchitecture();
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shrink-0 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <span>Xem sơ đồ</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Status Alert */}
           {isFallback ? (

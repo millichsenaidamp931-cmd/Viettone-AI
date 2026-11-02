@@ -20,9 +20,9 @@ export const PRED_CONFIG = {
   // Cửa sổ thời gian tích luỹ dự đoán để ổn định (ms)
   BUFFER_TIME_MS: 1100,
   // Ngưỡng năng lượng âm thanh để coi là đang có giọng nói
-  AUDIO_VOLUME_THRESHOLD: 0.04,
-  // Số lượng cửa sổ dự đoán tối thiểu cần thu thập
-  MIN_PREDICTIONS_COUNT: 3,
+  AUDIO_VOLUME_THRESHOLD: 0.035,
+  // Số lượng cửa sổ dự đoán tối thiểu cần thu thập (1-2 cửa sổ phù hợp với từ đơn âm tiết 250-400ms)
+  MIN_PREDICTIONS_COUNT: 1,
 
   // ================= Version 2.0 Evaluation Thresholds =================
   // Ngưỡng đánh giá AI chắc chắn: Top-1 >= 0.70 và Top-1 - Top-2 >= 0.15

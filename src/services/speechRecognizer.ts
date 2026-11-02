@@ -7,6 +7,7 @@
 import '@tensorflow/tfjs';
 import * as speechCommands from '@tensorflow-models/speech-commands';
 import { PRED_CONFIG, TONE_CLASSES } from '../config';
+import { VadPreprocessor, VadProcessResult } from './vadPreprocessor';
 
 /**
  * Ánh xạ nhãn trả về từ Teachable Machine sang 7 class chuẩn tiếng Việt
@@ -117,6 +118,7 @@ export class VietToneSpeechEngine {
   private scriptProcessor: ScriptProcessorNode | null = null;
   private recordedChunks: Float32Array[] = [];
   private lastRecordedAudio: { buffer: Float32Array; sampleRate: number } | null = null;
+  private lastVadResult: VadProcessResult | null = null;
   private fallbackInterval: number | null = null;
   private isFallbackMode: boolean = false;
 
@@ -125,12 +127,17 @@ export class VietToneSpeechEngine {
     timestamp: number;
     scores: Record<string, number>;
     isNoise: boolean;
+    volume: number;
   }[] = [];
 
   constructor() {}
 
   public getLastRecordedAudio(): { buffer: Float32Array; sampleRate: number } | null {
     return this.lastRecordedAudio;
+  }
+
+  public getLastVadResult(): VadProcessResult | null {
+    return this.lastVadResult;
   }
 
   public getLabels(): string[] {
@@ -390,7 +397,8 @@ export class VietToneSpeechEngine {
     }
 
     const bgNoiseScore = mappedScores['Background Noise'] ?? 0;
-    const isBackgroundNoise = bgNoiseScore > 0.70 && volume < PRED_CONFIG.AUDIO_VOLUME_THRESHOLD;
+    // Khung được coi là nhiễu nền hoặc khoảng lặng nếu năng lượng nhỏ hơn ngưỡng hoặc điểm noise cao
+    const isBackgroundNoise = bgNoiseScore > 0.65 || volume < PRED_CONFIG.AUDIO_VOLUME_THRESHOLD;
 
     // Lọc ra 6 thanh điệu (loại bỏ Background Noise)
     const toneKeys = [
@@ -432,6 +440,7 @@ export class VietToneSpeechEngine {
       timestamp: now,
       scores: normalizedScores,
       isNoise: isBackgroundNoise,
+      volume,
     });
 
     // Chỉ giữ các mẫu trong khoảng PRED_CONFIG.BUFFER_TIME_MS (~1.1 giây)
@@ -533,9 +542,8 @@ export class VietToneSpeechEngine {
     averageScores: Record<string, number>;
     reason?: string;
   } {
-    const validFrames = this.predictionBuffer.filter(
-      (item) => !item.isNoise
-    );
+    // Ưu tiên các khung có giọng nói thực tế (không phải nhiễu nền hoặc khoảng lặng)
+    let candidateFrames = this.predictionBuffer.filter((item) => !item.isNoise);
 
     const toneKeys = [
       'Thanh ngang',
@@ -549,25 +557,36 @@ export class VietToneSpeechEngine {
     const averageScores: Record<string, number> = {};
     for (const key of toneKeys) averageScores[key] = 0;
 
-    if (validFrames.length < PRED_CONFIG.MIN_PREDICTIONS_COUNT) {
+    // Nếu không có khung nào vượt ngưỡng thông thường, tìm các khung có âm lượng cao nhất trong buffer
+    if (candidateFrames.length === 0 && this.predictionBuffer.length > 0) {
+      const sortedByVol = [...this.predictionBuffer].sort((a, b) => b.volume - a.volume);
+      if (sortedByVol[0].volume > 0.015) {
+        candidateFrames = [sortedByVol[0]];
+      }
+    }
+
+    if (candidateFrames.length === 0) {
       return {
         isStable: false,
         winnerTone: null,
         confidence: 0,
         averageScores,
-        reason: 'Chưa thu đủ mẫu âm thanh (cần tối thiểu 3 cửa sổ âm thanh liên tiếp).',
+        reason: 'Chưa phát hiện giọng nói rõ ràng qua micro.',
       };
     }
 
-    // 1. Tính trung bình xác suất của từng thanh
-    for (const frame of validFrames) {
+    // 1. Tính trung bình có trọng số theo âm lượng của từng khung
+    let totalWeight = 0;
+    for (const frame of candidateFrames) {
+      const weight = Math.max(0.2, frame.volume * 5);
+      totalWeight += weight;
       for (const key of toneKeys) {
-        averageScores[key] += frame.scores[key] || 0;
+        averageScores[key] += (frame.scores[key] || 0) * weight;
       }
     }
 
     for (const key of toneKeys) {
-      averageScores[key] /= validFrames.length;
+      averageScores[key] = totalWeight > 0 ? averageScores[key] / totalWeight : 0.166;
     }
 
     // 2. Tìm thanh có xác suất trung bình cao nhất
@@ -583,7 +602,7 @@ export class VietToneSpeechEngine {
 
     // 3. Majority Voting: Đếm số lượng frame mà winner đứng đầu
     let winnerFrameCount = 0;
-    for (const frame of validFrames) {
+    for (const frame of candidateFrames) {
       let topInFrame = '';
       let topScoreInFrame = 0;
       for (const key of toneKeys) {
@@ -597,9 +616,9 @@ export class VietToneSpeechEngine {
       }
     }
 
-    const majorityRatio = winnerFrameCount / validFrames.length;
+    const majorityRatio = candidateFrames.length > 0 ? winnerFrameCount / candidateFrames.length : 0;
     const isConfident = maxAvgScore >= PRED_CONFIG.MIN_CONFIDENCE_THRESHOLD;
-    const isStable = isConfident && majorityRatio >= 0.55;
+    const isStable = isConfident && (candidateFrames.length === 1 || majorityRatio >= 0.50);
 
     return {
       isStable,
@@ -644,8 +663,13 @@ export class VietToneSpeechEngine {
           merged.set(chunk, offset);
           offset += chunk.length;
         }
+
+        // Áp dụng VAD: Cắt bỏ khoảng lặng ở 2 đầu và chuẩn hóa biên độ
+        const vadResult = VadPreprocessor.processAudio(merged, sampleRate);
+        this.lastVadResult = vadResult;
+
         this.lastRecordedAudio = {
-          buffer: merged,
+          buffer: vadResult.speechDetected ? vadResult.trimmedBuffer : merged,
           sampleRate,
         };
       }

@@ -196,6 +196,17 @@ export const DetailedFeedback: React.FC<DetailedFeedbackProps> = ({
         </div>
       )}
 
+      {/* Cơ chế Mô hình Lai */}
+      {assessment.hybridExplanation && (
+        <div className="mt-2 p-2.5 rounded-xl bg-slate-100/80 border border-slate-200 text-xs text-slate-700 flex items-start gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-slate-600 shrink-0 mt-0.5" />
+          <p className="text-[11px] sm:text-xs">
+            <strong className="text-slate-900 font-bold">Xác thực: </strong>
+            <span>{assessment.hybridExplanation}</span>
+          </p>
+        </div>
+      )}
+
       {/* Gợi ý cải thiện */}
       <div className="mt-2 p-2.5 rounded-xl bg-red-50/80 border border-red-200 text-xs text-red-900 flex items-start gap-2">
         <Sparkles className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />

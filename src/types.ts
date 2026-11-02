@@ -109,6 +109,8 @@ export interface FeedbackAssessment {
   adviceText: string;
   f0SpecificObservation?: string;
   improvementTip: string;
+  hybridExplanation?: string;
+  agreementStatus?: 'full_agreement' | 'acoustic_corrected' | 'tm_dominant' | 'balanced';
 }
 
 /** Lượt luyện tập được lưu trữ */
@@ -129,6 +131,8 @@ export interface PracticeAttempt {
   meanPitchHz?: number;
   audioQuality: 'good' | 'too_quiet' | 'unreliable_pitch' | 'noisy';
   adviceSummary: string;
+  engineMode?: 'hybrid' | 'teachable_machine' | 'fallback';
+  hybridAgreement?: 'full_agreement' | 'acoustic_corrected' | 'tm_dominant' | 'balanced';
 }
 
 /** Thống kê theo từng thanh điệu */

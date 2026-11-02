@@ -67,6 +67,8 @@ export class FeedbackAdvisor {
     userContour: F0ContourData | null;
     refSample: ReferenceToneSample | null;
     f0ScoreResult: F0ScoreResult;
+    hybridExplanation?: string;
+    agreementStatus?: 'full_agreement' | 'acoustic_corrected' | 'tm_dominant' | 'balanced';
   }): FeedbackAssessment {
     const {
       targetTone,
@@ -75,6 +77,8 @@ export class FeedbackAdvisor {
       userContour,
       refSample,
       f0ScoreResult,
+      hybridExplanation,
+      agreementStatus,
     } = params;
 
     const { isConfident, topToneScore, top2Margin } = this.evaluateAiConfidence(
@@ -111,6 +115,8 @@ export class FeedbackAdvisor {
         headline: 'AI chưa nhận diện chắc chắn. Hãy nghe mẫu chuẩn và thử đọc lại',
         adviceText,
         improvementTip: `Nghe lại âm mẫu của từ "${targetTone.word}" (${targetTone.name}) và phát âm to, rõ ràng hơn vào mic.`,
+        hybridExplanation,
+        agreementStatus,
       };
     }
 
@@ -142,6 +148,8 @@ export class FeedbackAdvisor {
         adviceText:
           'AI nhận diện gần với thanh mục tiêu nhưng đường cong cao độ F0 dao động khác mẫu chuẩn. Hãy nghe lại âm mẫu để điều chỉnh nhịp đọc.',
         improvementTip: targetTone.guideTip,
+        hybridExplanation,
+        agreementStatus,
       };
     }
 
@@ -174,6 +182,8 @@ export class FeedbackAdvisor {
         adviceText: `Bạn đã phát âm từ "${targetTone.word}" rất rõ ràng và sát với ngữ điệu chuẩn của ${targetTone.name.toLowerCase()}.`,
         f0SpecificObservation: f0Observation,
         improvementTip: 'Hãy tiếp tục giữ phong độ này và thử thách các thanh tiếp theo!',
+        hybridExplanation,
+        agreementStatus,
       };
     }
 
@@ -197,6 +207,8 @@ export class FeedbackAdvisor {
       adviceText: `Bạn đang luyện từ "${targetTone.word}" (${targetTone.name.toLowerCase()}). Có thể đường nét cao độ hoặc cách ngân giọng chưa trùng khớp với mẫu.`,
       f0SpecificObservation: f0Observation,
       improvementTip: targetTone.guideTip,
+      hybridExplanation,
+      agreementStatus,
     };
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings2, HelpCircle, Mic, Compass, TrendingUp, Flame, Volume2, VolumeX } from 'lucide-react';
+import { Settings2, HelpCircle, Mic, Compass, TrendingUp, Flame, Volume2, VolumeX, GitBranch } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { StreakInfo } from '../types';
 
@@ -8,6 +8,7 @@ interface HeaderProps {
   onChangeTab: (tab: MainTabType) => void;
   onOpenSettings: () => void;
   onOpenGuide: () => void;
+  onOpenArchitecture?: () => void;
   isModelReady: boolean;
   isFallback: boolean;
   streakInfo: StreakInfo;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeTab,
   onOpenSettings,
   onOpenGuide,
+  onOpenArchitecture,
   isModelReady,
   isFallback,
   streakInfo,
@@ -147,6 +149,18 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
             <Settings2 className="w-3.5 h-3.5 text-slate-500" />
           </button>
+
+          {/* Architecture / Code Flow Diagram Button */}
+          {onOpenArchitecture && (
+            <button
+              type="button"
+              onClick={onOpenArchitecture}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-700 hover:bg-cyan-50 transition-colors cursor-pointer"
+              title="Sơ đồ luồng xử lý & Kiến trúc hệ thống (Code Flow Diagram)"
+            >
+              <GitBranch className="w-4 h-4 text-cyan-600" />
+            </button>
+          )}
 
           {/* Guide Button */}
           <button

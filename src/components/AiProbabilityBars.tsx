@@ -8,6 +8,8 @@ interface AiProbabilityBarsProps {
   topToneScore: number;
   isListening: boolean;
   selectedToneName: string;
+  hybridAgreement?: 'full_agreement' | 'acoustic_corrected' | 'tm_dominant' | 'balanced';
+  hybridExplanation?: string;
 }
 
 export const AiProbabilityBars: React.FC<AiProbabilityBarsProps> = ({
@@ -16,6 +18,8 @@ export const AiProbabilityBars: React.FC<AiProbabilityBarsProps> = ({
   topToneScore,
   isListening,
   selectedToneName,
+  hybridAgreement,
+  hybridExplanation,
 }) => {
   const toneClasses = [
     'Thanh ngang',
@@ -31,16 +35,19 @@ export const AiProbabilityBars: React.FC<AiProbabilityBarsProps> = ({
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
       {/* Top Headline */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100">
+      <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
         <div>
           <h2 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <span>Xác suất AI nhận diện 6 thanh</span>
+            <span>Xác suất nhận diện (Mô hình Lai)</span>
             {isListening && (
               <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-red-100 text-red-700 animate-pulse">
                 Live
               </span>
             )}
           </h2>
+          <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+            Kết hợp Teachable Machine + Âm vị học F0
+          </p>
         </div>
 
         {/* Top Recognized Pill */}
@@ -60,6 +67,19 @@ export const AiProbabilityBars: React.FC<AiProbabilityBarsProps> = ({
           </span>
         )}
       </div>
+
+      {/* Hybrid Engine Tag/Notice */}
+      {hybridAgreement && (
+        <div className="mb-2.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-start gap-1.5 text-[11px]">
+          {hybridAgreement === 'full_agreement' ? (
+            <span className="font-semibold text-emerald-700">✓ Đồng thuận cao: Teachable Machine và đường F0 đều nhận định trùng khớp.</span>
+          ) : hybridAgreement === 'acoustic_corrected' ? (
+            <span className="font-semibold text-amber-800">⚡ Hiệu chỉnh F0: Đã hiệu chỉnh dựa trên quy luật cao độ vật lý (loại bỏ sai lệch do âm vực riêng).</span>
+          ) : (
+            <span className="text-slate-600 font-medium">Tổng hợp xác suất đa kênh (Teachable Machine + Âm vị học).</span>
+          )}
+        </div>
+      )}
 
       {/* 6 Probability Bars */}
       <div className="space-y-2">

@@ -31,6 +31,7 @@ import { F0ScoringService } from './services/f0Scoring';
 import { FeedbackAdvisor } from './services/feedbackAdvisor';
 import { ProgressStorage } from './services/progressStorage';
 import { MotivationEngine } from './services/motivationEngine';
+import { HybridToneEngine } from './services/hybridToneEngine';
 import { isSoundFxEnabled, setSoundFxEnabled, playCelebrationChime } from './utils/audioSynthesizer';
 
 import { Header } from './components/Header';
@@ -46,6 +47,7 @@ import { ProgressDashboard } from './components/ProgressDashboard';
 import { ModelSettingsModal } from './components/ModelSettingsModal';
 import { PitchGuideInfo } from './components/PitchGuideInfo';
 import { TeacherReferenceModal } from './components/TeacherReferenceModal';
+import { ArchitectureModal } from './components/ArchitectureModal';
 import { VietToneCompanion } from './components/VietToneCompanion';
 import { ConfettiEffect } from './components/ConfettiEffect';
 
@@ -63,6 +65,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState<boolean>(false);
+  const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
 
   // State chọn thanh và microphone
   const [selectedTone, setSelectedTone] = useState<ToneItem>(VIETNAMESE_TONES[4]); // Mặc định: mã (thanh ngã)
@@ -201,17 +204,7 @@ export default function App() {
       listeningTimerRef.current = null;
     }
 
-    // A. Lấy kết quả AI từ Teachable Machine
-    const stabilized = speechEngineInstance.getStabilizedResult();
-    const finalScores = stabilized.averageScores;
-    const finalTopTone = stabilized.winnerTone;
-    const finalConfidence = stabilized.confidence;
-
-    setCurrentProbabilities(finalScores);
-    setTopToneName(finalTopTone);
-    setTopToneScore(finalConfidence);
-
-    // B. Lấy buffer âm thanh thực tế của lượt đọc và phân tích F0 (YIN/Autocorrelation)
+    // A. Lấy buffer âm thanh thực tế của lượt đọc (đã được VAD lọc khoảng lặng & chuẩn hóa biên độ)
     const recordedAudio = speechEngineInstance.getLastRecordedAudio();
     let contour: F0ContourData | null = null;
 
@@ -237,26 +230,38 @@ export default function App() {
     }
     setUserContour(contour);
 
-    // C. Lấy mẫu tham chiếu chuẩn thật
+    // B. Lấy kết quả AI từ Teachable Machine
+    const stabilized = speechEngineInstance.getStabilizedResult();
+
+    // C. MÔ HÌNH LAI: Kết hợp Teachable Machine + Bộ phân loại âm vị học F0
+    const hybridRes = HybridToneEngine.evaluateHybrid(stabilized.averageScores, contour);
+
+    setCurrentProbabilities(hybridRes.combinedScores);
+    setTopToneName(hybridRes.topTone);
+    setTopToneScore(hybridRes.topScore);
+
+    // D. Lấy mẫu tham chiếu chuẩn thật
     const currentRef = ReferenceAudioService.getReferenceSample(selectedTone.id);
     setRefSample(currentRef);
 
-    // D. Tính điểm tương đồng F0 (0–100)
+    // E. Tính điểm tương đồng F0 (0–100)
     const f0ScoreRes = F0ScoringService.calculateF0Similarity(contour, currentRef);
     setF0ScoreResult(f0ScoreRes);
 
-    // E. Phản hồi sư phạm chỉ rõ lỗi có thể cải thiện
+    // F. Phản hồi sư phạm chỉ rõ lỗi có thể cải thiện kết hợp giải thích mô hình lai
     const assessment = FeedbackAdvisor.generateAssessment({
       targetTone: selectedTone,
-      predictedToneName: finalTopTone,
-      probabilities: finalScores,
+      predictedToneName: hybridRes.topTone,
+      probabilities: hybridRes.combinedScores,
       userContour: contour,
       refSample: currentRef,
       f0ScoreResult: f0ScoreRes,
+      hybridExplanation: hybridRes.explanation,
+      agreementStatus: hybridRes.agreementStatus,
     });
     setFeedbackAssessment(assessment);
 
-    // F. Lưu lượt luyện vào localStorage
+    // G. Lưu lượt luyện vào localStorage
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -264,7 +269,7 @@ export default function App() {
     const dateStr = `${year}-${month}-${day}`;
 
     const isMatch =
-      finalTopTone?.trim().toLowerCase() === selectedTone.name.trim().toLowerCase();
+      hybridRes.topTone?.trim().toLowerCase() === selectedTone.name.trim().toLowerCase();
 
     let audioQuality: PracticeAttempt['audioQuality'] = 'good';
     if (!contour.isReliable) {
@@ -278,16 +283,18 @@ export default function App() {
       targetToneId: selectedTone.id,
       targetToneName: selectedTone.name,
       targetWord: selectedTone.word,
-      predictedToneName: finalTopTone,
-      confidence: finalConfidence,
+      predictedToneName: hybridRes.topTone,
+      confidence: hybridRes.topScore,
       top2Margin: assessment.top2Margin,
-      isAiConfident: assessment.isAiConfident,
+      isAiConfident: hybridRes.isAiConfident,
       isMatch,
       hasReliableF0: contour.isReliable,
       f0Score: f0ScoreRes.score,
       meanPitchHz: contour.meanPitchHz || undefined,
       audioQuality,
       adviceSummary: assessment.headline,
+      engineMode: 'hybrid',
+      hybridAgreement: hybridRes.agreementStatus,
     };
 
     ProgressStorage.saveAttempt(attempt);
@@ -408,6 +415,7 @@ export default function App() {
         onChangeTab={setActiveTab}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenArchitecture={() => setIsArchitectureOpen(true)}
         isModelReady={isModelReady}
         isFallback={isFallbackMode}
         streakInfo={streakInfo}
@@ -469,13 +477,15 @@ export default function App() {
 
             {/* CỘT PHẢI (XÁC SUẤT 6 THANH, ĐIỂM F0, VÀ BIỂU ĐỒ ĐỐI CHIẾU) */}
             <div className="lg:col-span-7 space-y-3">
-              {/* Xác suất dự đoán 6 thanh của AI Teachable Machine */}
+              {/* Xác suất dự đoán 6 thanh của Mô hình Lai (Teachable Machine + Âm vị học F0) */}
               <AiProbabilityBars
                 probabilities={currentProbabilities}
                 topToneName={topToneName}
                 topToneScore={topToneScore}
                 isListening={isListening}
                 selectedToneName={selectedTone.name}
+                hybridAgreement={feedbackAssessment?.agreementStatus}
+                hybridExplanation={feedbackAssessment?.hybridExplanation}
               />
 
               {/* Thẻ điểm tương đồng F0 (0–100) độc lập */}
@@ -564,6 +574,7 @@ export default function App() {
         isFallback={isFallbackMode}
         modelError={modelErrorMessage}
         onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+        onOpenArchitecture={() => setIsArchitectureOpen(true)}
       />
 
       {/* Pitch Guide Modal */}
@@ -580,6 +591,12 @@ export default function App() {
           updateCurrentRefSample(selectedTone.id);
           refreshStorageData();
         }}
+      />
+
+      {/* System Architecture & Code Flow Diagram Modal */}
+      <ArchitectureModal
+        isOpen={isArchitectureOpen}
+        onClose={() => setIsArchitectureOpen(false)}
       />
     </div>
   );
