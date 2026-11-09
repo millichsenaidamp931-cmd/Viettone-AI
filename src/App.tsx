@@ -50,10 +50,51 @@ import { TeacherReferenceModal } from './components/TeacherReferenceModal';
 import { ArchitectureModal } from './components/ArchitectureModal';
 import { VietToneCompanion } from './components/VietToneCompanion';
 import { ConfettiEffect } from './components/ConfettiEffect';
+import { VietToneHomeEmbedded } from './components/VietToneHomeEmbedded';
+import { getInitialRoute, navigateTo, getQueryParam, AppRoute } from './utils/router';
+
 
 import { ShieldCheck, Info } from 'lucide-react';
 
 export default function App() {
+  // Client-side router state ('/' landing page or '/app' learning studio)
+  const [currentRoute, setCurrentRoute] = useState<AppRoute>(() => getInitialRoute());
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(getInitialRoute());
+      const toneParam = getQueryParam('tone');
+      if (toneParam) {
+        const found = VIETNAMESE_TONES.find((t) => t.id === toneParam.toLowerCase());
+        if (found) {
+          setSelectedTone(found);
+          setUserContour(null);
+          setF0ScoreResult(null);
+          setFeedbackAssessment(null);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleNavigate = (route: AppRoute, toneId?: string) => {
+    const queryParams = toneId ? { tone: toneId } : undefined;
+    navigateTo(route, queryParams);
+    setCurrentRoute(route);
+    if (toneId) {
+      const found = VIETNAMESE_TONES.find((t) => t.id === toneId);
+      if (found) {
+        setSelectedTone(found);
+        setUserContour(null);
+        setF0ScoreResult(null);
+        setFeedbackAssessment(null);
+        setMotivationMessage(MotivationEngine.getReadyMessage(found, streakInfo));
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // State điều hướng 3 Tab chính (Educational SaaS layout)
   const [activeTab, setActiveTab] = useState<MainTabType>('practice');
 
@@ -67,8 +108,16 @@ export default function App() {
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState<boolean>(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
 
-  // State chọn thanh và microphone
-  const [selectedTone, setSelectedTone] = useState<ToneItem>(VIETNAMESE_TONES[4]); // Mặc định: mã (thanh ngã)
+  // State chọn thanh và microphone (hỗ trợ đọc query param ?tone=)
+  const [selectedTone, setSelectedTone] = useState<ToneItem>(() => {
+    const toneParam = getQueryParam('tone');
+    if (toneParam) {
+      const found = VIETNAMESE_TONES.find((t) => t.id === toneParam.toLowerCase());
+      if (found) return found;
+    }
+    return VIETNAMESE_TONES[4]; // Mặc định: mã (thanh ngã)
+  });
+
   const [isListening, setIsListening] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [audioVolume, setAudioVolume] = useState<number>(0);
@@ -402,26 +451,35 @@ export default function App() {
   const nextRecommendation = ProgressStorage.getNextRecommendedTone();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-['Be_Vietnam_Pro',sans-serif] pb-20 md:pb-8">
-      {/* Hiệu ứng pháo hoa hoa giấy ăn mừng nhẹ nhàng */}
-      <ConfettiEffect
-        active={isConfettiActive}
-        onComplete={() => setIsConfettiActive(false)}
-      />
+    <>
+      {currentRoute === '/' ? (
+        <VietToneHomeEmbedded
+          onOpenLearning={(toneId) => handleNavigate('/app', toneId)}
+          onOpenArchitecture={() => setIsArchitectureOpen(true)}
+        />
+      ) : (
 
-      {/* SaaS Navigation Header */}
-      <Header
-        activeTab={activeTab}
-        onChangeTab={setActiveTab}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenGuide={() => setIsGuideOpen(true)}
-        onOpenArchitecture={() => setIsArchitectureOpen(true)}
-        isModelReady={isModelReady}
-        isFallback={isFallbackMode}
-        streakInfo={streakInfo}
-        soundFxEnabled={soundFxEnabled}
-        onToggleSoundFx={handleToggleSoundFx}
-      />
+        <div className="min-h-screen bg-slate-50 flex flex-col font-['Be_Vietnam_Pro',sans-serif] pb-20 md:pb-8">
+          {/* Hiệu ứng pháo hoa hoa giấy ăn mừng nhẹ nhàng */}
+          <ConfettiEffect
+            active={isConfettiActive}
+            onComplete={() => setIsConfettiActive(false)}
+          />
+
+          {/* SaaS Navigation Header */}
+          <Header
+            activeTab={activeTab}
+            onChangeTab={setActiveTab}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenGuide={() => setIsGuideOpen(true)}
+            onOpenArchitecture={() => setIsArchitectureOpen(true)}
+            onGoHome={() => handleNavigate('/')}
+            isModelReady={isModelReady}
+            isFallback={isFallbackMode}
+            streakInfo={streakInfo}
+            soundFxEnabled={soundFxEnabled}
+            onToggleSoundFx={handleToggleSoundFx}
+          />
 
       {/* Main SaaS Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -560,44 +618,46 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar (Cố định ở đáy) */}
       <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
-
-      {/* Model Settings & Teacher Reference Modal */}
-      <ModelSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        currentModelUrl={modelUrl}
-        onSaveModelUrl={async (newUrl) => {
-          setModelUrl(newUrl);
-          await initModel(newUrl);
-          setIsSettingsOpen(false);
-        }}
-        isFallback={isFallbackMode}
-        modelError={modelErrorMessage}
-        onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
-        onOpenArchitecture={() => setIsArchitectureOpen(true)}
-      />
-
-      {/* Pitch Guide Modal */}
-      <PitchGuideInfo
-        isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
-      />
-
-      {/* Teacher Reference Samples Management Modal */}
-      <TeacherReferenceModal
-        isOpen={isTeacherModalOpen}
-        onClose={() => setIsTeacherModalOpen(false)}
-        onSamplesUpdated={() => {
-          updateCurrentRefSample(selectedTone.id);
-          refreshStorageData();
-        }}
-      />
-
-      {/* System Architecture & Code Flow Diagram Modal */}
-      <ArchitectureModal
-        isOpen={isArchitectureOpen}
-        onClose={() => setIsArchitectureOpen(false)}
-      />
     </div>
-  );
+  )}
+
+  {/* Model Settings & Teacher Reference Modal */}
+  <ModelSettingsModal
+    isOpen={isSettingsOpen}
+    onClose={() => setIsSettingsOpen(false)}
+    currentModelUrl={modelUrl}
+    onSaveModelUrl={async (newUrl) => {
+      setModelUrl(newUrl);
+      await initModel(newUrl);
+      setIsSettingsOpen(false);
+    }}
+    isFallback={isFallbackMode}
+    modelError={modelErrorMessage}
+    onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+    onOpenArchitecture={() => setIsArchitectureOpen(true)}
+  />
+
+  {/* Pitch Guide Modal */}
+  <PitchGuideInfo
+    isOpen={isGuideOpen}
+    onClose={() => setIsGuideOpen(false)}
+  />
+
+  {/* Teacher Reference Samples Management Modal */}
+  <TeacherReferenceModal
+    isOpen={isTeacherModalOpen}
+    onClose={() => setIsTeacherModalOpen(false)}
+    onSamplesUpdated={() => {
+      updateCurrentRefSample(selectedTone.id);
+      refreshStorageData();
+    }}
+  />
+
+  {/* System Architecture & Code Flow Diagram Modal */}
+  <ArchitectureModal
+    isOpen={isArchitectureOpen}
+    onClose={() => setIsArchitectureOpen(false)}
+  />
+</>
+);
 }

@@ -1,0 +1,56 @@
+import React from 'react';
+import { LandingNavbar } from './LandingNavbar';
+import { BeLacVanMieuHero } from './BeLacVanMieuHero';
+import { ProductExperienceSection } from './ProductExperienceSection';
+import { InteractiveShowcaseSection } from './InteractiveShowcaseSection';
+import { F0ExplainedSection } from './F0ExplainedSection';
+import { PersonalizedLearningSection } from './PersonalizedLearningSection';
+import { FinalCtaSection } from './FinalCtaSection';
+
+interface LandingPageProps {
+  onGoToApp: (toneId?: string) => void;
+  onOpenArchitecture?: () => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({
+  onGoToApp,
+  onOpenArchitecture,
+}) => {
+  const handleExploreFeatures = () => {
+    const el = document.getElementById('features');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white text-[#172333] flex flex-col font-['Be_Vietnam_Pro',sans-serif] selection:bg-red-500 selection:text-white">
+      {/* Floating Kem/Trắng Navbar */}
+      <LandingNavbar onGoToApp={() => onGoToApp()} />
+
+      {/* Hero Section: Bé Lạc tại Văn Miếu – Ngôi trường tiếng Việt */}
+      <BeLacVanMieuHero
+        onStartPractice={(toneId) => onGoToApp(toneId)}
+        onExploreFeatures={handleExploreFeatures}
+      />
+
+      {/* Section 2: Product Experience Bento Grid */}
+      <ProductExperienceSection onGoToApp={() => onGoToApp()} />
+
+      {/* Section 3: Interactive 4-Step Feature Showcase */}
+      <InteractiveShowcaseSection onGoToApp={() => onGoToApp()} />
+
+      {/* Section 4: F0 Pitch Explained in High-Contrast Dark Theme */}
+      <F0ExplainedSection onGoToApp={() => onGoToApp()} />
+
+      {/* Section 5: Personalized Learning & Motivation Engine */}
+      <PersonalizedLearningSection onGoToApp={() => onGoToApp()} />
+
+      {/* Section 6: Final CTA & Footer */}
+      <FinalCtaSection
+        onGoToApp={() => onGoToApp()}
+        onOpenArchitecture={onOpenArchitecture}
+      />
+    </div>
+  );
+};

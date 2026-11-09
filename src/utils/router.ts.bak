@@ -1,0 +1,34 @@
+/**
+ * Simple client-side router for VietTone AI:
+ * - '/' : Public Marketing & Product Landing Page
+ * - '/app' : VietTone Learning Application
+ * 
+ * Supports browser history, back/forward buttons, and hash fallbacks.
+ */
+
+export type AppRoute = '/' | '/app';
+
+export const getInitialRoute = (): AppRoute => {
+  if (typeof window === 'undefined') return '/';
+  
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+
+  // If path is /app or hash is #/app or #app, go to /app
+  if (path === '/app' || path.startsWith('/app/') || hash === '#/app' || hash === '#app') {
+    return '/app';
+  }
+
+  return '/';
+};
+
+export const navigateTo = (route: AppRoute) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.history.pushState({ route }, '', route);
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { route } }));
+  } catch {
+    window.location.hash = route === '/app' ? '#/app' : '#/';
+  }
+};

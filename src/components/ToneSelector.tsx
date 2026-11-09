@@ -102,14 +102,20 @@ export const ToneSelector: React.FC<ToneSelectorProps> = ({
                   {tone.name.replace('Thanh ', '')}
                 </span>
 
-                <button
-                  type="button"
+                <span
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => handlePlayAudio(e, tone.id)}
-                  className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handlePlayAudio(e as unknown as React.MouseEvent, tone.id);
+                    }
+                  }}
+                  className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 transition-colors cursor-pointer"
                   title={`Nghe: ${tone.word}`}
                 >
                   <Volume2 className="w-3 h-3" />
-                </button>
+                </span>
               </div>
             </button>
           );

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#172333">
+<meta name="description" content="VietTone AI – Luyện nghe và phát âm 6 thanh điệu tiếng Việt cùng Bé Lạc tại Văn Miếu.">
+<title>VietTone AI | Học trọn vẹn 6 thanh tiếng Việt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#172333;--red:#ef233c;--orange:#ff9100;--cream:#fff7eb;--white:#fff}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;overflow:hidden}
+body{font-family:"Be Vietnam Pro",system-ui,sans-serif;background:#172333;color:var(--navy)}
+button,a{font:inherit}button{cursor:pointer}a{text-decoration:none}img{max-width:100%}
+a:focus-visible,button:focus-visible{outline:3px solid #60a5fa;outline-offset:4px}
+
+.hero{position:relative;width:100%;height:100vh;height:100svh;overflow:hidden;background:#87542d url("./assets/scene-bg.jpg") center center/cover no-repeat;color:white;isolation:isolate;display:flex;align-items:center;justify-content:center}
+.hero:before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(30,26,24,.74) 0%,rgba(39,27,19,.59) 24%,rgba(40,28,22,.11) 54%,rgba(40,28,22,.08) 100%),linear-gradient(0deg,rgba(22,19,16,.28),transparent 28%);animation:bgReveal .55s ease-out both}
+@keyframes bgReveal{0%{opacity:.2}100%{opacity:1}}
+
+.hero-inner{position:relative;z-index:3;width:min(1470px,94%);height:100%;margin:0 auto;display:flex;align-items:center}
+.copy{position:relative;z-index:7;width:min(550px,46%);text-shadow:0 2px 12px rgba(0,0,0,.15)}
+.eyebrow{display:inline-block;color:#61230f;background:#fff0d7;padding:12px 18px;border-radius:45px 18px 45px 13px;font-weight:800;font-size:14px;line-height:1.45;text-shadow:none;max-width:360px}
+h1{font-size:clamp(40px,4.5vw,74px);line-height:1.14;letter-spacing:-1.8px;margin:20px 0 16px;font-weight:800;animation:fadeInUp .65s cubic-bezier(.16,1,.3,1) 1.35s both}
+h1 em{font-style:normal;color:#ffd68b;text-shadow:0 3px 18px rgba(240,72,13,.4)}
+.lead{font-size:clamp(14px,1.18vw,18px);line-height:1.75;max-width:540px;color:#fff9ed;margin:0;animation:fadeInUp .65s cubic-bezier(.16,1,.3,1) 1.50s both}
+.actions{display:flex;gap:14px;align-items:center;margin-top:28px;animation:fadeInUp .65s cubic-bezier(.16,1,.3,1) 1.65s both}
+
+@keyframes fadeInUp{
+  0%{opacity:0;transform:translate3d(0,26px,0)}
+  100%{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes fadeIn{
+  0%{opacity:0}
+  100%{opacity:1}
+}
+
+.cta{border:0;border-radius:999px;background:linear-gradient(105deg,#e92025,#ff9100);color:#fff;font-weight:800;font-size:16px;padding:15px 32px;display:inline-flex;align-items:center;gap:10px;justify-content:center;transition:transform .2s,filter .2s,box-shadow .2s;white-space:nowrap;box-shadow:0 8px 24px rgba(233,32,37,.35)}
+.cta:hover{transform:translateY(-2px)!important;filter:brightness(1.08);box-shadow:0 12px 28px rgba(233,32,37,.45)}
+.cta:active{transform:translateY(0)!important}
+
+.mascot-stage{position:absolute;z-index:5;width:clamp(340px,43vw,700px);right:15%;bottom:4%;aspect-ratio:519/543;pointer-events:none;will-change:transform;transition:transform .14s ease-out}
+.mascot-intro{display:block;width:100%;height:100%;animation:mascotFlyIn .85s cubic-bezier(.18,.89,.32,1.15) .3s both}
+.mascot-float{display:block;width:100%;height:100%;animation:float 4.4s ease-in-out infinite;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 16px 16px rgba(45,20,4,.22))}
+.mascot-float img{width:100%;height:100%;object-fit:contain;display:block}
+
+@keyframes mascotFlyIn{
+  0%{opacity:0;transform:translate3d(110px,100px,0) scale(.55) rotate(7deg);filter:blur(4px)}
+  72%{opacity:1;transform:translate3d(-10px,-14px,0) scale(1.04) rotate(-2deg);filter:blur(0)}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0deg);filter:blur(0)}
+}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+
+.tones{position:absolute;inset:0;z-index:6;pointer-events:none}
+.tone{position:absolute;pointer-events:auto;width:70px;height:63px;background:rgba(255,241,209,.96);border:2px solid #fff7e7;box-shadow:0 5px 18px rgba(0,0,0,.18);border-radius:17px;display:grid;place-items:center;color:#a62c12;font-size:23px;font-weight:800;transform:rotate(var(--rot,0));transition:transform .2s,background .2s,box-shadow .2s;animation:toneFlyIn .52s cubic-bezier(.34,1.56,.64,1) both}
+.tone:hover{transform:rotate(0) scale(1.15)!important;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.26);z-index:2;animation-play-state:paused}
+
+@keyframes toneFlyIn{
+  0%{opacity:0;transform:translate3d(0,38px,0) rotate(var(--rot,0)) scale(.35)}
+  75%{opacity:1;transform:translate3d(0,-6px,0) rotate(var(--rot,0)) scale(1.12)}
+  100%{opacity:1;transform:translate3d(0,0,0) rotate(var(--rot,0)) scale(1)}
+}
+
+@keyframes toneGentleFloat{
+  0%,100%{transform:translateY(0) rotate(var(--rot,0))}
+  50%{transform:translateY(-5px) rotate(calc(var(--rot,0) + 1.2deg))}
+}
+body.intro-ready .tone{animation:toneGentleFloat 4s ease-in-out infinite}
+body.intro-ready .tone[data-tone=ngang]{animation-delay:0s}
+body.intro-ready .tone[data-tone=sac]{animation-delay:.6s}
+body.intro-ready .tone[data-tone=huyen]{animation-delay:1.2s}
+body.intro-ready .tone[data-tone=hoi]{animation-delay:1.8s}
+body.intro-ready .tone[data-tone=nga]{animation-delay:2.4s}
+body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
+
+.tone[data-tone=ngang]{left:34%;top:31%;--rot:-13deg;animation-delay:.75s}
+.tone[data-tone=sac]{left:39%;top:15%;--rot:11deg;animation-delay:.88s}
+.tone[data-tone=huyen]{right:21%;top:18%;--rot:-11deg;animation-delay:1.01s}
+.tone[data-tone=hoi]{right:11%;top:31%;--rot:10deg;animation-delay:1.14s}
+.tone[data-tone=nga]{right:12%;top:52%;--rot:-7deg;animation-delay:1.27s}
+.tone[data-tone=nang]{right:27%;top:67%;--rot:8deg;animation-delay:1.40s}
+
+.subfeatures{position:absolute;z-index:6;right:3.5%;bottom:8%;display:grid;gap:12px;color:#fff6e2;font-weight:700;font-size:16px;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:fadeIn .55s ease-out 1.80s both}
+.subfeatures span{border-left:3px solid #ffcc77;padding-left:11px}
+.hero-note{position:absolute;z-index:6;bottom:20px;left:3%;color:#fff3df;font-size:12px;opacity:.78;cursor:pointer;user-select:none;transition:opacity .2s;animation:fadeIn .55s ease-out 1.90s both}
+.hero-note:hover{opacity:1}
+
+@media(max-width:1050px){
+  .copy{width:49%}
+  .mascot-stage{right:4%;width:49vw}
+  .tone{width:62px;height:56px;font-size:20px}
+  .subfeatures{display:none}
+}
+
+@media(max-width:760px){
+  .hero{background-position:58% center}
+  .hero:before{background:linear-gradient(180deg,rgba(29,22,18,.72),rgba(29,22,18,.35) 46%,rgba(29,22,18,.12) 85%)}
+  .hero-inner{width:92%;display:block;padding:36px 0 0}
+  .copy{width:100%;margin:0;text-align:center}
+  .eyebrow{font-size:11px;padding:9px 13px}
+  h1{font-size:clamp(34px,7.5vw,48px);margin:16px 0 12px;letter-spacing:-1.3px}
+  .lead{font-size:14px;line-height:1.6;max-width:480px;margin:0 auto}
+  .actions{justify-content:center;margin-top:20px}
+  .cta{padding:13px 26px;font-size:14px}
+  .mascot-stage{width:min(86vw,460px);right:7%;bottom:5%}
+  .tones{inset:auto 0 0;top:280px}
+  .tone{width:54px;height:47px;font-size:18px;border-radius:12px}
+  .tone[data-tone=ngang]{left:7%;top:26%}
+  .tone[data-tone=sac]{left:14%;top:9%}
+  .tone[data-tone=huyen]{right:16%;top:10%}
+  .tone[data-tone=hoi]{right:5%;top:28%}
+  .tone[data-tone=nga]{right:7%;top:58%}
+  .tone[data-tone=nang]{left:9%;top:59%}
+  .hero-note{bottom:12px;left:5%;font-size:11px}
+}
+
+@media(max-width:390px){
+  .hero-inner{padding:28px 0 0}
+  .actions .cta{font-size:13px;padding:12px 22px}
+  .mascot-stage{bottom:6%}
+  .tone{width:48px;height:42px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important;opacity:1!important}
+  .mascot-intro{animation:none!important;opacity:1!important;transform:none!important}
+  .tone{animation:none!important;opacity:1!important;transform:rotate(var(--rot,0))!important}
+  h1,.lead,.actions,.subfeatures,.hero-note{animation:none!important;opacity:1!important;transform:none!important}
+}
+</style>
+<script>
+// Danh sách các cảnh nền Văn Miếu (ảnh gốc scene-bg.jpg + 5 biến thể cảnh đẹp)
+const SCENE_BACKGROUNDS = [
+  { src: './assets/scene-bg.jpg', note: 'VietTone AI · Minh họa Văn Miếu – Quốc Tử Giám' },
+  { src: './assets/scene-bg-1.jpg', note: 'VietTone AI · Bình minh hồ sen & Khuê Văn Các' },
+  { src: './assets/scene-bg-2.jpg', note: 'VietTone AI · Hoàng hôn rực rỡ bên giếng Thiên Quang' },
+  { src: './assets/scene-bg-3.jpg', note: 'VietTone AI · Vườn bia Tiến Sĩ rợp bóng cổ thụ' },
+  { src: './assets/scene-bg-4.jpg', note: 'VietTone AI · Sân rồng Điện Đại Thành uy nghiêm' },
+  { src: './assets/scene-bg-5.jpg', note: 'VietTone AI · Đêm hoa đăng lung linh Khuê Văn Các' }
+];
+
+// Chọn ngẫu nhiên khi mở trang
+const initialSceneIndex = Math.floor(Math.random() * SCENE_BACKGROUNDS.length);
+window.__VIETTONE_ACTIVE_SCENE_INDEX = initialSceneIndex;
+window.__VIETTONE_ACTIVE_SCENE = SCENE_BACKGROUNDS[initialSceneIndex];
+
+// Áp dụng ngay trước khi trang hiển thị để tránh nháy ảnh
+const sceneStyle = document.createElement('style');
+sceneStyle.id = 'dynamic-scene-bg-style';
+sceneStyle.textContent = `.hero{background-image:url("${window.__VIETTONE_ACTIVE_SCENE.src}") !important}`;
+document.head.appendChild(sceneStyle);
+</script>
+</head>
+
+<body>
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="copy">
+      <h1>Học trọn vẹn<br><em>6 thanh tiếng Việt</em></h1>
+      <p class="lead">Cùng Bé Lạc luyện nghe, luyện nói và khám phá thanh điệu tiếng Việt bằng trí tuệ nhân tạo.</p>
+      <div class="actions">
+        <button type="button" class="cta" data-app>Trải nghiệm ngay <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+    <div class="mascot-stage" id="mascot-stage">
+      <div class="mascot-intro">
+        <a class="mascot-float" href="/app" data-app aria-label="Bé Lạc – Bắt đầu học">
+          <img src="./assets/be-lac.png" alt="Bé Lạc đang bay vui vẻ và đeo tai nghe">
+        </a>
+      </div>
+    </div>
+    <div class="tones" aria-label="Chọn thanh điệu để luyện">
+      <button class="tone" data-tone="ngang" aria-label="Luyện thanh ngang">ma</button>
+      <button class="tone" data-tone="sac" aria-label="Luyện thanh sắc">má</button>
+      <button class="tone" data-tone="huyen" aria-label="Luyện thanh huyền">mà</button>
+      <button class="tone" data-tone="hoi" aria-label="Luyện thanh hỏi">mả</button>
+      <button class="tone" data-tone="nga" aria-label="Luyện thanh ngã">mã</button>
+      <button class="tone" data-tone="nang" aria-label="Luyện thanh nặng">mạ</button>
+    </div>
+    <div class="subfeatures">
+      <span>Nghe và phân biệt</span>
+      <span>Luyện tập cùng AI</span>
+      <span>Theo dõi tiến bộ</span>
+    </div>
+    <span class="hero-note" title="Nhấp để đổi ngẫu nhiên sang cảnh Văn Miếu khác">VietTone AI · Minh họa Văn Miếu – Quốc Tử Giám</span>
+  </div>
+</section>
+
+<script>
+// CHỈ THAY ĐỔI DÒNG DƯỚI nếu đường dẫn trang học trong dự án không phải /app.
+const APP_PATH = '/app';
+function openApp(toneId) {
+  const url = APP_PATH + (toneId ? '?tone=' + encodeURIComponent(toneId) : '');
+  if (window.parent !== window) {
+    // Nếu Home đang hiển thị trong iframe của React, gửi sự kiện cho trang cha.
+    window.parent.postMessage({
+      type: 'VIETTONE_NAVIGATE',
+      action: 'openLearning',
+      path: APP_PATH,
+      tone: toneId || null,
+      toneId: toneId || null
+    }, window.location.origin);
+    // Dự phòng nếu React chưa cài trình lắng nghe: mở trang học trong iframe.
+    setTimeout(() => { if (document.documentElement.isConnected) window.location.assign(url); }, 500);
+  } else {
+    window.location.assign(url);
+  }
+}
+
+document.querySelectorAll('[data-app]').forEach(el => el.addEventListener('click', ev => {
+  ev.preventDefault();
+  openApp();
+}));
+
+document.querySelectorAll('[data-tone]').forEach(el => el.addEventListener('click', (ev) => {
+  ev.preventDefault();
+  openApp(el.dataset.tone);
+}));
+
+const mascot = document.getElementById('mascot-stage');
+if (window.matchMedia('(pointer:fine)').matches && !window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
+  let raf = 0, px = 0, py = 0;
+  document.getElementById('home').addEventListener('pointermove', ev => {
+    const b = ev.currentTarget.getBoundingClientRect();
+    px = ((ev.clientX - b.left) / b.width - .5) * 23;
+    py = ((ev.clientY - b.top) / b.height - .5) * 16;
+    if (!raf) {
+      raf = requestAnimationFrame(() => {
+        mascot.style.transform = `translate3d(${px}px,${py}px,0)`;
+        raf = 0;
+      });
+    }
+  });
+  document.getElementById('home').addEventListener('pointerleave', () => {
+    mascot.style.transform = 'translate3d(0,0,0)';
+  });
+}
+
+// Cập nhật chú thích và cho phép nhấn vào để đổi ngẫu nhiên sang cảnh khác
+const heroNote = document.querySelector('.hero-note');
+if (heroNote && window.__VIETTONE_ACTIVE_SCENE) {
+  heroNote.textContent = window.__VIETTONE_ACTIVE_SCENE.note;
+  heroNote.addEventListener('click', () => {
+    let nextIdx;
+    do {
+      nextIdx = Math.floor(Math.random() * SCENE_BACKGROUNDS.length);
+    } while (nextIdx === window.__VIETTONE_ACTIVE_SCENE_INDEX && SCENE_BACKGROUNDS.length > 1);
+    window.__VIETTONE_ACTIVE_SCENE_INDEX = nextIdx;
+    window.__VIETTONE_ACTIVE_SCENE = SCENE_BACKGROUNDS[nextIdx];
+    document.getElementById('dynamic-scene-bg-style').textContent = `.hero{background-image:url("${window.__VIETTONE_ACTIVE_SCENE.src}") !important}`;
+    heroNote.textContent = window.__VIETTONE_ACTIVE_SCENE.note;
+  });
+}
+
+// Bật trạng thái sẵn sàng để bắt đầu chuyển động lơ lửng nhẹ nhàng sau 2s mở màn
+setTimeout(() => {
+  document.body.classList.add('intro-ready');
+}, 2000);
+</script>
+</body>
+</html>
