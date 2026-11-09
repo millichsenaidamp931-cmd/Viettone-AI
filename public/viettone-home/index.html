@@ -244,14 +244,14 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
 }
 </style>
 <script>
-// Danh sách các cảnh nền Văn Miếu (ảnh gốc scene-bg.jpg + 5 biến thể cảnh đẹp)
+// Danh sách các cảnh nền Văn Miếu 3D hoạt hình màu sắc tươi sáng dễ thương theo phong cách Bé Lạc
 const SCENE_BACKGROUNDS = [
-  { src: './assets/scene-bg.jpg', note: 'VietTone AI · Minh họa Văn Miếu – Quốc Tử Giám' },
-  { src: './assets/scene-bg-1.jpg', note: 'VietTone AI · Bình minh hồ sen & Khuê Văn Các' },
-  { src: './assets/scene-bg-2.jpg', note: 'VietTone AI · Hoàng hôn rực rỡ bên giếng Thiên Quang' },
-  { src: './assets/scene-bg-3.jpg', note: 'VietTone AI · Vườn bia Tiến Sĩ rợp bóng cổ thụ' },
-  { src: './assets/scene-bg-4.jpg', note: 'VietTone AI · Sân rồng Điện Đại Thành uy nghiêm' },
-  { src: './assets/scene-bg-5.jpg', note: 'VietTone AI · Đêm hoa đăng lung linh Khuê Văn Các' }
+  { src: './assets/scene-bg-1.jpg', note: 'VietTone AI · Khuê Văn Các 3D bên hồ sen rực rỡ' },
+  { src: './assets/scene-bg-2.jpg', note: 'VietTone AI · Giếng Thiên Quang 3D nước ngọc trong lành' },
+  { src: './assets/scene-bg-3.jpg', note: 'VietTone AI · Vườn bia Tiến Sĩ 3D rợp bóng tre trúc' },
+  { src: './assets/scene-bg-4.jpg', note: 'VietTone AI · Sân rồng Điện Đại Thành 3D lung linh hoa đăng' },
+  { src: './assets/scene-bg-5.jpg', note: 'VietTone AI · Cổng Tam Quan Đại Trung Môn 3D cổ kính' },
+  { src: './assets/scene-bg.jpg', note: 'VietTone AI · Văn Miếu – Quốc Tử Giám truyền thống' }
 ];
 
 // Chọn ngẫu nhiên khi mở trang
@@ -438,7 +438,7 @@ function playTonePitch(toneId) {
   }
 }
 
-// Bộ đệm file âm thanh chuyên biệt cho từng thanh điệu (OGG + MP3)
+// Bộ đệm file âm thanh chuyên biệt cho từng thanh điệu (OGG + MP3 + WAV)
 const toneAudioCache = {};
 ['ngang', 'sac', 'huyen', 'hoi', 'nga', 'nang'].forEach(t => {
   const audio = new Audio();
@@ -448,8 +448,12 @@ const toneAudioCache = {};
   const mp3 = document.createElement('source');
   mp3.src = `./assets/tone-${t}.mp3`;
   mp3.type = 'audio/mpeg';
+  const wav = document.createElement('source');
+  wav.src = `./assets/tone-${t}.wav`;
+  wav.type = 'audio/wav';
   audio.appendChild(ogg);
   audio.appendChild(mp3);
+  audio.appendChild(wav);
   audio.preload = 'auto';
   toneAudioCache[t] = audio;
 });

@@ -1,11 +1,13 @@
 /**
- * VietTone AI - Version 2.1 (VietTone Motivation Engine & Educational SaaS Dashboard)
- * Luyện nghe và phát âm 6 thanh điệu tiếng Việt với Người bạn đồng hành Bé Lạc
+ * VietTone AI - Immersive Learning Experience (Hala Rabbit inspired structure with Bé Lạc centerpiece)
+ * Luyện nghe và phát âm 6 thanh điệu tiếng Việt cùng Người bạn đồng hành Bé Lạc
  * 
- * Bố cục 3 màn hình chuyên biệt:
- * 1. Luyện phát âm (2 cột trên desktop, kết quả tức thì không cần cuộn trang)
- * 2. Lộ trình học tập (4 bước sư phạm, đánh giá đủ 3 lượt, gợi ý thanh tiếp theo)
- * 3. Tiến bộ của tôi (Dashboard phân tích 7 ngày, chuỗi ngày streak, huy hiệu thành tích)
+ * Bố cục Immersive:
+ * 1. Minimal Header: Logo, Streak, 5 Popups (Phân tích, Lộ trình, Tiến bộ, Thành tích, Cài đặt), Sound FX
+ * 2. Centerpiece Bé Lạc: Bé Lạc ở trung tâm, hiệu ứng sóng âm khi đang nghe, thanh mục tiêu và nút nghe mẫu
+ * 3. Khung hội thoại Bé Lạc: Nút Microphone nổi bật, sóng âm âm lượng thực, KẾT QUẢ AI TRỰC TIẾP KHÔNG CẦN POPUP
+ * 4. Sáu thẻ thanh điệu: Dưới cùng màn hình (6 cột Desktop, 3x2 Mobile), thứ tự ma, má, mà, mả, mã, mạ
+ * 5. Các công cụ phân tích, lộ trình, tiến độ, thành tích và cài đặt được đưa gọn vào popup / modal độc lập
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -32,27 +34,35 @@ import { FeedbackAdvisor } from './services/feedbackAdvisor';
 import { ProgressStorage } from './services/progressStorage';
 import { MotivationEngine } from './services/motivationEngine';
 import { HybridToneEngine } from './services/hybridToneEngine';
-import { isSoundFxEnabled, setSoundFxEnabled, playCelebrationChime } from './utils/audioSynthesizer';
+import {
+  isSoundFxEnabled,
+  setSoundFxEnabled,
+  playCelebrationChime,
+  playPracticeWelcomeAudio,
+  playRandomEncourageAudio,
+  stopAnyVoiceAudio,
+  ENCOURAGE_VOICE_MESSAGES,
+} from './utils/audioSynthesizer';
 
-import { Header } from './components/Header';
-import { BottomNav, MainTabType } from './components/BottomNav';
-import { ToneSelector } from './components/ToneSelector';
-import { MicController } from './components/MicController';
-import { AiProbabilityBars } from './components/AiProbabilityBars';
-import { F0ContourChart } from './components/F0ContourChart';
-import { F0ScoreCard } from './components/F0ScoreCard';
-import { DetailedFeedback } from './components/DetailedFeedback';
-import { LearningRoadmap } from './components/LearningRoadmap';
-import { ProgressDashboard } from './components/ProgressDashboard';
+// Immersive Redesign Components
+import { MinimalHeader } from './components/immersive/MinimalHeader';
+import { BeLacHeroCenter } from './components/immersive/BeLacHeroCenter';
+import { BeLacDialogueBox } from './components/immersive/BeLacDialogueBox';
+import { SixToneCardsBottom } from './components/immersive/SixToneCardsBottom';
+import { AnalysisModal } from './components/immersive/AnalysisModal';
+import { RoadmapModal } from './components/immersive/RoadmapModal';
+import { ProgressModal } from './components/immersive/ProgressModal';
+import { AchievementsModal } from './components/immersive/AchievementsModal';
+import { SettingsModal } from './components/immersive/SettingsModal';
+
+// Existing System Modals & Effects
 import { ModelSettingsModal } from './components/ModelSettingsModal';
 import { PitchGuideInfo } from './components/PitchGuideInfo';
 import { TeacherReferenceModal } from './components/TeacherReferenceModal';
 import { ArchitectureModal } from './components/ArchitectureModal';
-import { VietToneCompanion } from './components/VietToneCompanion';
 import { ConfettiEffect } from './components/ConfettiEffect';
 import { VietToneHomeEmbedded } from './components/VietToneHomeEmbedded';
 import { getInitialRoute, navigateTo, getQueryParam, AppRoute } from './utils/router';
-
 
 import { ShieldCheck, Info } from 'lucide-react';
 
@@ -79,6 +89,8 @@ export default function App() {
   }, []);
 
   const handleNavigate = (route: AppRoute, toneId?: string) => {
+    stopAnyVoiceAudio();
+    setEncourageVoiceText(null);
     const queryParams = toneId ? { tone: toneId } : undefined;
     navigateTo(route, queryParams);
     setCurrentRoute(route);
@@ -95,18 +107,24 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // State điều hướng 3 Tab chính (Educational SaaS layout)
-  const [activeTab, setActiveTab] = useState<MainTabType>('practice');
+  // State 5 Popup chính của Immersive Redesign
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState<boolean>(false);
+  const [isRoadmapOpen, setIsRoadmapOpen] = useState<boolean>(false);
+  const [isProgressOpen, setIsProgressOpen] = useState<boolean>(false);
+  const [isAchievementsOpen, setIsAchievementsOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  // State các Modal phụ trợ hệ thống
+  const [isModelUrlModalOpen, setIsModelUrlModalOpen] = useState<boolean>(false);
+  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState<boolean>(false);
+  const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
 
   // State quản lý mô hình Teachable Machine
   const [modelUrl, setModelUrl] = useState<string>(TEACHABLE_MACHINE_MODEL_URL);
   const [isModelReady, setIsModelReady] = useState<boolean>(false);
   const [isFallbackMode, setIsFallbackMode] = useState<boolean>(false);
   const [modelErrorMessage, setModelErrorMessage] = useState<string>('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
-  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState<boolean>(false);
-  const [isArchitectureOpen, setIsArchitectureOpen] = useState<boolean>(false);
 
   // State chọn thanh và microphone (hỗ trợ đọc query param ?tone=)
   const [selectedTone, setSelectedTone] = useState<ToneItem>(() => {
@@ -139,6 +157,7 @@ export default function App() {
   const [refSample, setRefSample] = useState<ReferenceToneSample | null>(null);
   const [f0ScoreResult, setF0ScoreResult] = useState<F0ScoreResult | null>(null);
   const [feedbackAssessment, setFeedbackAssessment] = useState<FeedbackAssessment | null>(null);
+  const [encourageVoiceText, setEncourageVoiceText] = useState<string | null>(null);
 
   // Tiến trình và lịch sử lưu trữ cục bộ (100% localStorage)
   const [historyAttempts, setHistoryAttempts] = useState<PracticeAttempt[]>([]);
@@ -168,6 +187,24 @@ export default function App() {
 
   const listeningTimerRef = useRef<number | null>(null);
   const speechDetectedRef = useRef<boolean>(false);
+  const practiceIntroPlayedRef = useRef<boolean>(false);
+
+  // Tự động phát âm thanh chào mừng "Bé Lạc đã sẵn sàng! Nhấn nút micro và đọc to từ" + từ mẫu khi tải trang luyện tập
+  useEffect(() => {
+    if (currentRoute === '/app') {
+      if (!practiceIntroPlayedRef.current) {
+        practiceIntroPlayedRef.current = true;
+        const timer = window.setTimeout(() => {
+          playPracticeWelcomeAudio(selectedTone.id);
+        }, 350);
+        return () => window.clearTimeout(timer);
+      }
+    } else {
+      // Khi trở về trang chủ, reset cờ và dừng mọi âm thanh đang phát
+      practiceIntroPlayedRef.current = false;
+      stopAnyVoiceAudio();
+    }
+  }, [currentRoute, selectedTone.id]);
 
   // Tải dữ liệu lưu trữ từ localStorage
   const refreshStorageData = useCallback(() => {
@@ -253,7 +290,7 @@ export default function App() {
       listeningTimerRef.current = null;
     }
 
-    // A. Lấy buffer âm thanh thực tế của lượt đọc (đã được VAD lọc khoảng lặng & chuẩn hóa biên độ)
+    // A. Lấy buffer âm thanh thực tế của lượt đọc
     const recordedAudio = speechEngineInstance.getLastRecordedAudio();
     let contour: F0ContourData | null = null;
 
@@ -348,22 +385,35 @@ export default function App() {
 
     ProgressStorage.saveAttempt(attempt);
 
-    // G. Motivation Engine: Đánh giá và chọn thông điệp động viên
+    // H. Motivation Engine: Đánh giá và chọn thông điệp động viên
     const allUpdatedAttempts = ProgressStorage.getAllAttempts();
     const updatedStreak = ProgressStorage.getStreakInfo();
     const motMessage = MotivationEngine.evaluateAttempt(attempt, allUpdatedAttempts, updatedStreak);
     setMotivationMessage(motMessage);
 
-    // Kích hoạt hiệu ứng ăn mừng nhẹ nhàng và âm thanh chimes
-    if (motMessage.celebrate) {
-      setIsConfettiActive(true);
-      if (motMessage.state === 'ten_attempts' || motMessage.state === 'three_day_streak') {
-        playCelebrationChime('milestone');
+    // Kích hoạt hiệu ứng ăn mừng hoặc giọng động viên của Bé Lạc
+    if (isMatch) {
+      setEncourageVoiceText(null);
+      if (motMessage.celebrate) {
+        setIsConfettiActive(true);
+        if (motMessage.state === 'ten_attempts' || motMessage.state === 'three_day_streak') {
+          playCelebrationChime('milestone');
+        } else {
+          playCelebrationChime('success');
+        }
       } else {
         playCelebrationChime('success');
       }
     } else {
+      // Người dùng chưa nói đúng (isMatch = false)
+      // Phát âm thanh khích lệ nhẹ nhàng và ngẫu nhiên 1 trong 3 file audio hướng dẫn của Bé Lạc
       playCelebrationChime('encourage');
+      window.setTimeout(() => {
+        const chosenIdx = playRandomEncourageAudio();
+        if (chosenIdx > 0 && chosenIdx <= ENCOURAGE_VOICE_MESSAGES.length) {
+          setEncourageVoiceText(ENCOURAGE_VOICE_MESSAGES[chosenIdx - 1]);
+        }
+      }, 350);
     }
 
     refreshStorageData();
@@ -371,6 +421,8 @@ export default function App() {
 
   // 4. Bắt đầu lắng nghe
   const handleStartListening = async () => {
+    stopAnyVoiceAudio();
+    setEncourageVoiceText(null);
     setPermissionError(null);
     setUserContour(null);
     setF0ScoreResult(null);
@@ -405,6 +457,8 @@ export default function App() {
   };
 
   const handleNextTone = () => {
+    stopAnyVoiceAudio();
+    setEncourageVoiceText(null);
     const currentIndex = VIETNAMESE_TONES.findIndex((t) => t.id === selectedTone.id);
     const nextIndex = (currentIndex + 1) % VIETNAMESE_TONES.length;
     const nextTone = VIETNAMESE_TONES[nextIndex];
@@ -417,6 +471,8 @@ export default function App() {
 
   const handleSelectToneById = (toneId: ToneId) => {
     if (isListening) return;
+    stopAnyVoiceAudio();
+    setEncourageVoiceText(null);
     const tone = VIETNAMESE_TONES.find((t) => t.id === toneId);
     if (tone) {
       setSelectedTone(tone);
@@ -424,8 +480,6 @@ export default function App() {
       setF0ScoreResult(null);
       setFeedbackAssessment(null);
       setMotivationMessage(MotivationEngine.getReadyMessage(tone, streakInfo));
-      setActiveTab('practice');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -449,6 +503,8 @@ export default function App() {
   };
 
   const nextRecommendation = ProgressStorage.getNextRecommendedTone();
+  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const todayAttemptsCount = historyAttempts.filter((a) => a.dateStr === todayDateStr).length;
 
   return (
     <>
@@ -458,206 +514,201 @@ export default function App() {
           onOpenArchitecture={() => setIsArchitectureOpen(true)}
         />
       ) : (
+        <div className="min-h-screen bg-[url('/assets/practice-bg.jpg')] bg-cover bg-center bg-no-repeat bg-fixed relative flex flex-col font-['Be_Vietnam_Pro',sans-serif] text-white selection:bg-red-500 selection:text-white">
+          {/* Lớp phủ gradient nhẹ giúp tăng chiều sâu và độ tương phản */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/60 pointer-events-none -z-0" />
 
-        <div className="min-h-screen bg-slate-50 flex flex-col font-['Be_Vietnam_Pro',sans-serif] pb-20 md:pb-8">
           {/* Hiệu ứng pháo hoa hoa giấy ăn mừng nhẹ nhàng */}
           <ConfettiEffect
             active={isConfettiActive}
             onComplete={() => setIsConfettiActive(false)}
           />
 
-          {/* SaaS Navigation Header */}
-          <Header
-            activeTab={activeTab}
-            onChangeTab={setActiveTab}
+          {/* 1. Header Tối Giản */}
+          <MinimalHeader
+            onGoHome={() => handleNavigate('/')}
+            onOpenAnalysis={() => setIsAnalysisOpen(true)}
+            onOpenRoadmap={() => setIsRoadmapOpen(true)}
+            onOpenProgress={() => setIsProgressOpen(true)}
+            onOpenAchievements={() => setIsAchievementsOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenGuide={() => setIsGuideOpen(true)}
             onOpenArchitecture={() => setIsArchitectureOpen(true)}
-            onGoHome={() => handleNavigate('/')}
-            isModelReady={isModelReady}
-            isFallback={isFallbackMode}
             streakInfo={streakInfo}
             soundFxEnabled={soundFxEnabled}
             onToggleSoundFx={handleToggleSoundFx}
+            isModelReady={isModelReady}
+            isFallback={isFallbackMode}
+            hasRecentAttempt={Boolean(feedbackAssessment)}
           />
 
-      {/* Main SaaS Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        {/* ================= TAB 1: LUYỆN PHÁT ÂM (STUDIO - 2 CỘT DESKTOP) ================= */}
-        {activeTab === 'practice' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* CỘT TRÁI (LỰA CHỌN, ĐỒNG HÀNH BÉ LẠC, MICROPHONE, VÀ PHẢN HỒI SƯ PHẠM) */}
-            <div className="lg:col-span-5 space-y-3.5">
-              {/* Compact Tone Selector */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs">
-                <ToneSelector
-                  selectedTone={selectedTone}
-                  onSelectTone={(tone) => {
-                    if (isListening) return;
-                    setSelectedTone(tone);
-                    setUserContour(null);
-                    setF0ScoreResult(null);
-                    setFeedbackAssessment(null);
-                    setMotivationMessage(MotivationEngine.getReadyMessage(tone, streakInfo));
-                  }}
-                  disabled={isListening}
-                />
-              </div>
-
-              {/* VietTone Companion – Người bạn đồng hành Bé Lạc */}
-              <VietToneCompanion
-                message={motivationMessage}
-                streakCount={streakInfo.currentStreak}
-              />
-
-              {/* Large Microphone Controller */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
-                <MicController
-                  isListening={isListening}
-                  onStartListening={handleStartListening}
-                  onStopListening={handleStopListening}
-                  audioVolume={audioVolume}
-                  permissionError={permissionError}
-                  onRetryPermission={handleStartListening}
-                  selectedWord={selectedTone.word}
-                />
-              </div>
-
-              {/* Detailed Feedback & Pedagogical Advice (Hoặc trạng thái chờ) */}
-              <DetailedFeedback
-                assessment={feedbackAssessment}
-                targetTone={selectedTone}
-                isListening={isListening}
-                onRetry={handleStartListening}
-                onNextTone={handleNextTone}
-              />
-            </div>
-
-            {/* CỘT PHẢI (XÁC SUẤT 6 THANH, ĐIỂM F0, VÀ BIỂU ĐỒ ĐỐI CHIẾU) */}
-            <div className="lg:col-span-7 space-y-3">
-              {/* Xác suất dự đoán 6 thanh của Mô hình Lai (Teachable Machine + Âm vị học F0) */}
-              <AiProbabilityBars
-                probabilities={currentProbabilities}
-                topToneName={topToneName}
-                topToneScore={topToneScore}
-                isListening={isListening}
-                selectedToneName={selectedTone.name}
-                hybridAgreement={feedbackAssessment?.agreementStatus}
-                hybridExplanation={feedbackAssessment?.hybridExplanation}
-              />
-
-              {/* Thẻ điểm tương đồng F0 (0–100) độc lập */}
-              {f0ScoreResult && (
-                <F0ScoreCard
-                  f0Result={f0ScoreResult}
-                  aiConfidencePercent={Math.round(topToneScore * 100)}
-                  topToneName={topToneName}
-                />
-              )}
-
-              {/* Biểu đồ đường cao độ F0 (Hz/ms) */}
-              <F0ContourChart
-                userContour={userContour}
-                refSample={refSample}
-                targetToneName={selectedTone.name}
-                isListening={isListening}
-                onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ================= TAB 2: LỘ TRÌNH HỌC TẬP (ROADMAP) ================= */}
-        {activeTab === 'roadmap' && (
-          <div className="animate-in fade-in duration-200">
-            <LearningRoadmap
-              stats={roadmapStats}
-              nextRecommended={nextRecommendation}
-              streakInfo={streakInfo}
-              onSelectToneId={handleSelectToneById}
+          {/* 2. Main Immersive Learning Content (Không cuộn dài, Bé Lạc trung tâm) */}
+          <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 py-3 sm:py-5 flex flex-col justify-between items-center gap-3">
+            {/* A. Bé Lạc trung tâm & Thanh mục tiêu */}
+            <BeLacHeroCenter
+              selectedTone={selectedTone}
+              isListening={isListening}
+              audioVolume={audioVolume}
+              assessment={feedbackAssessment}
             />
-          </div>
-        )}
 
-        {/* ================= TAB 3: TIẾN BỘ CỦA TÔI (PROGRESS / ANALYTICS) ================= */}
-        {activeTab === 'progress' && (
-          <div className="animate-in fade-in duration-200">
-            <ProgressDashboard
-              attempts={historyAttempts}
-              stats={roadmapStats}
-              recent7Days={recent7Days}
-              streakInfo={streakInfo}
-              badges={milestoneBadges}
-              onClearHistory={handleClearHistory}
-              onSelectAttemptTone={handleSelectToneById}
+            {/* B. Khung hội thoại Bé Lạc (Microphone & KẾT QUẢ AI TRỰC TIẾP) */}
+            <BeLacDialogueBox
+              selectedTone={selectedTone}
+              isListening={isListening}
+              audioVolume={audioVolume}
+              permissionError={permissionError}
+              onStartListening={handleStartListening}
+              onStopListening={handleStopListening}
+              onRetryPermission={handleStartListening}
+              assessment={feedbackAssessment}
+              userContour={userContour}
+              f0ScoreResult={f0ScoreResult}
+              onOpenAnalysis={() => setIsAnalysisOpen(true)}
+              encourageVoiceText={encourageVoiceText}
             />
-          </div>
-        )}
 
-        {/* Thông báo Fallback nếu URL mô hình chưa kết nối */}
-        {isFallbackMode && (
-          <div className="w-full mt-4 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
-            <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-bold text-amber-950">Chế độ phân tích âm vực thời gian thực</p>
-              <p className="text-amber-800 mt-0.5">
-                Mô hình đang kết nối URL: <code>{modelUrl}</code>. Toàn bộ giải thuật F0, chấm điểm tương đồng DTW và các tính năng học tập đang hoạt động trực tiếp trên trình duyệt.
-              </p>
+            {/* C. Sáu thẻ thanh điệu dưới cùng (ma, má, mà, mả, mã, mạ) */}
+            <SixToneCardsBottom
+              selectedTone={selectedTone}
+              onSelectTone={(tone) => {
+                if (isListening) return;
+                stopAnyVoiceAudio();
+                setEncourageVoiceText(null);
+                setSelectedTone(tone);
+                setUserContour(null);
+                setF0ScoreResult(null);
+                setFeedbackAssessment(null);
+                setMotivationMessage(MotivationEngine.getReadyMessage(tone, streakInfo));
+              }}
+              disabled={isListening}
+            />
+
+            {/* Fallback Mode Note nếu URL mô hình lỗi mạng */}
+            {isFallbackMode && (
+              <div className="w-full p-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11px] flex items-center gap-2 shadow-xs backdrop-blur-md">
+                <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">
+                  Chế độ mô phỏng F0 thời gian thực đang chạy trực tiếp trên trình duyệt.
+                </span>
+              </div>
+            )}
+
+            {/* Footer Quyền riêng tư */}
+            <div className="w-full pt-1 pb-1 flex items-center justify-center gap-1.5 text-center text-[10px] sm:text-xs text-white/60">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>
+                Âm thanh được phân tích trực tiếp trên thiết bị của bạn, tuyệt đối bảo mật.
+              </span>
             </div>
-          </div>
-        )}
-
-        {/* Footer Privacy Notice */}
-        <div className="w-full mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-center gap-1.5 text-center text-xs text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span>
-            Âm thanh và dữ liệu luyện tập được xử lý trực tiếp trên thiết bị của bạn, hoàn toàn không gửi lên máy chủ.
-          </span>
+          </main>
         </div>
-      </main>
+      )}
 
-      {/* Mobile Bottom Navigation Bar (Cố định ở đáy) */}
-      <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
-    </div>
-  )}
+      {/* ================= 5 POPUP / MODAL CHUYÊN BIỆT ================= */}
 
-  {/* Model Settings & Teacher Reference Modal */}
-  <ModelSettingsModal
-    isOpen={isSettingsOpen}
-    onClose={() => setIsSettingsOpen(false)}
-    currentModelUrl={modelUrl}
-    onSaveModelUrl={async (newUrl) => {
-      setModelUrl(newUrl);
-      await initModel(newUrl);
-      setIsSettingsOpen(false);
-    }}
-    isFallback={isFallbackMode}
-    modelError={modelErrorMessage}
-    onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
-    onOpenArchitecture={() => setIsArchitectureOpen(true)}
-  />
+      {/* POPUP 1 – Phân tích AI & Đường nét F0 */}
+      <AnalysisModal
+        isOpen={isAnalysisOpen}
+        onClose={() => setIsAnalysisOpen(false)}
+        selectedTone={selectedTone}
+        currentProbabilities={currentProbabilities}
+        topToneName={topToneName}
+        topToneScore={topToneScore}
+        userContour={userContour}
+        refSample={refSample}
+        f0ScoreResult={f0ScoreResult}
+        feedbackAssessment={feedbackAssessment}
+        isListening={isListening}
+        onRetry={handleStartListening}
+        onNextTone={handleNextTone}
+        onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+      />
 
-  {/* Pitch Guide Modal */}
-  <PitchGuideInfo
-    isOpen={isGuideOpen}
-    onClose={() => setIsGuideOpen(false)}
-  />
+      {/* POPUP 2 – Lộ trình học tập */}
+      <RoadmapModal
+        isOpen={isRoadmapOpen}
+        onClose={() => setIsRoadmapOpen(false)}
+        stats={roadmapStats}
+        nextRecommended={nextRecommendation}
+        streakInfo={streakInfo}
+        onSelectToneId={handleSelectToneById}
+      />
 
-  {/* Teacher Reference Samples Management Modal */}
-  <TeacherReferenceModal
-    isOpen={isTeacherModalOpen}
-    onClose={() => setIsTeacherModalOpen(false)}
-    onSamplesUpdated={() => {
-      updateCurrentRefSample(selectedTone.id);
-      refreshStorageData();
-    }}
-  />
+      {/* POPUP 3 – Tiến bộ của tôi & Lịch sử */}
+      <ProgressModal
+        isOpen={isProgressOpen}
+        onClose={() => setIsProgressOpen(false)}
+        attempts={historyAttempts}
+        stats={roadmapStats}
+        recent7Days={recent7Days}
+        streakInfo={streakInfo}
+        badges={milestoneBadges}
+        onClearHistory={handleClearHistory}
+        onSelectAttemptTone={handleSelectToneById}
+      />
 
-  {/* System Architecture & Code Flow Diagram Modal */}
-  <ArchitectureModal
-    isOpen={isArchitectureOpen}
-    onClose={() => setIsArchitectureOpen(false)}
-  />
-</>
-);
+      {/* POPUP 4 – Thành tích & Streak */}
+      <AchievementsModal
+        isOpen={isAchievementsOpen}
+        onClose={() => setIsAchievementsOpen(false)}
+        streakInfo={streakInfo}
+        badges={milestoneBadges}
+        todayAttemptsCount={todayAttemptsCount}
+      />
+
+      {/* POPUP 5 – Cài đặt hệ thống */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        soundFxEnabled={soundFxEnabled}
+        onToggleSoundFx={handleToggleSoundFx}
+        onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+        onOpenArchitecture={() => setIsArchitectureOpen(true)}
+        onOpenModelSettings={() => setIsModelUrlModalOpen(true)}
+        onClearHistory={handleClearHistory}
+        isModelReady={isModelReady}
+        isFallback={isFallbackMode}
+        modelUrl={modelUrl}
+      />
+
+      {/* Modal Đổi URL Teachable Machine */}
+      <ModelSettingsModal
+        isOpen={isModelUrlModalOpen}
+        onClose={() => setIsModelUrlModalOpen(false)}
+        currentModelUrl={modelUrl}
+        onSaveModelUrl={async (newUrl) => {
+          setModelUrl(newUrl);
+          await initModel(newUrl);
+          setIsModelUrlModalOpen(false);
+        }}
+        isFallback={isFallbackMode}
+        modelError={modelErrorMessage}
+        onOpenTeacherModal={() => setIsTeacherModalOpen(true)}
+        onOpenArchitecture={() => setIsArchitectureOpen(true)}
+      />
+
+      {/* Modal Hướng dẫn 6 thanh điệu */}
+      <PitchGuideInfo
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+      />
+
+      {/* Modal Quản lý Mẫu chuẩn Giáo viên */}
+      <TeacherReferenceModal
+        isOpen={isTeacherModalOpen}
+        onClose={() => setIsTeacherModalOpen(false)}
+        onSamplesUpdated={() => {
+          updateCurrentRefSample(selectedTone.id);
+          refreshStorageData();
+        }}
+      />
+
+      {/* Modal Sơ đồ Kiến trúc & Luồng xử lý */}
+      <ArchitectureModal
+        isOpen={isArchitectureOpen}
+        onClose={() => setIsArchitectureOpen(false)}
+      />
+    </>
+  );
 }
