@@ -55,8 +55,64 @@ h1 em{font-style:normal;color:#ffd68b;text-shadow:0 3px 18px rgba(240,72,13,.4)}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
 
 .tones{position:absolute;inset:0;z-index:6;pointer-events:none}
-.tone{position:absolute;pointer-events:auto;width:70px;height:63px;background:rgba(255,241,209,.96);border:2px solid #fff7e7;box-shadow:0 5px 18px rgba(0,0,0,.18);border-radius:17px;display:grid;place-items:center;color:#a62c12;font-size:23px;font-weight:800;transform:rotate(var(--rot,0));transition:transform .2s,background .2s,box-shadow .2s;animation:toneFlyIn .52s cubic-bezier(.34,1.56,.64,1) both}
-.tone:hover{transform:rotate(0) scale(1.15)!important;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.26);z-index:2;animation-play-state:paused}
+.tone{
+  position:absolute;
+  pointer-events:auto;
+  width:92px;
+  height:82px;
+  background-image:radial-gradient(circle at 50% 40%, rgba(255,255,255,.45) 0%, transparent 68%), repeating-linear-gradient(90deg, transparent 0, transparent 15px, rgba(255,255,255,.18) 15px, rgba(0,0,0,.08) 17px), var(--lantern-bg);
+  background-blend-mode:screen, normal, normal;
+  border:2px solid rgba(255,255,255,.65);
+  box-shadow:0 8px 24px var(--lantern-glow), inset 0 0 16px rgba(255,255,255,.3);
+  border-radius:46% 46% 48% 48% / 54% 54% 46% 46%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  padding:5px 6px;
+  color:var(--tone-color, #fff);
+  transform:rotate(var(--rot,0));
+  transition:transform .24s cubic-bezier(.34,1.56,.64,1), filter .2s, box-shadow .24s;
+  animation:toneFlyIn .52s cubic-bezier(.34,1.56,.64,1) both;
+  user-select:none;
+}
+/* Chuôi lồng đèn gỗ/vàng trên */
+.tone:before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:50%;
+  transform:translateX(-50%);
+  width:26px;
+  height:7px;
+  background:linear-gradient(180deg,#ffd700,#996515);
+  border-radius:3px 3px 1px 1px;
+  box-shadow:0 -3px 0 -1.5px #ffe066, 0 1px 2px rgba(0,0,0,.35);
+  z-index:3;
+}
+/* Tua rua lụa đỏ vàng dưới lồng đèn */
+.tone:after{
+  content:"";
+  position:absolute;
+  bottom:-20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:7px;
+  height:20px;
+  background:linear-gradient(180deg,#996515 0%,#ffd700 20%,#d90429 20%,#b70919 100%);
+  border-radius:0 0 4px 4px;
+  box-shadow:0 3px 6px rgba(0,0,0,.35);
+  transform-origin:top center;
+  transition:transform .3s ease;
+  z-index:1;
+}
+
+.tone-word{font-size:29px;font-weight:800;line-height:1.05;color:var(--tone-color,#fff);text-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .2s}
+.tone-name{font-size:11.5px;font-weight:700;color:var(--name-color,#fff);opacity:.95;letter-spacing:-.2px;line-height:1;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+
+.tone:hover{transform:rotate(0) scale(1.16)!important;filter:brightness(1.12);box-shadow:0 14px 34px var(--lantern-glow), inset 0 0 20px rgba(255,255,255,.5);z-index:12;animation-play-state:paused}
+.tone:hover:after{transform:translateX(-50%) rotate(12deg)}
 
 @keyframes toneFlyIn{
   0%{opacity:0;transform:translate3d(0,38px,0) rotate(var(--rot,0)) scale(.35)}
@@ -76,12 +132,55 @@ body.intro-ready .tone[data-tone=hoi]{animation-delay:1.8s}
 body.intro-ready .tone[data-tone=nga]{animation-delay:2.4s}
 body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
 
-.tone[data-tone=ngang]{left:34%;top:31%;--rot:-13deg;animation-delay:.75s}
-.tone[data-tone=sac]{left:39%;top:15%;--rot:11deg;animation-delay:.88s}
-.tone[data-tone=huyen]{right:21%;top:18%;--rot:-11deg;animation-delay:1.01s}
-.tone[data-tone=hoi]{right:11%;top:31%;--rot:10deg;animation-delay:1.14s}
-.tone[data-tone=nga]{right:12%;top:52%;--rot:-7deg;animation-delay:1.27s}
-.tone[data-tone=nang]{right:27%;top:67%;--rot:8deg;animation-delay:1.40s}
+/* 6 màu sắc lồng đèn Việt Nam rực rỡ đặc trưng */
+/* 1. Thanh Ngang: Lồng đèn Vàng Hổ Phách Hội An */
+.tone[data-tone=ngang]{
+  left:34%;top:31%;--rot:-13deg;animation-delay:.75s;
+  --lantern-bg:linear-gradient(180deg,#fff3b0 0%,#ffb703 50%,#e08500 100%);
+  --lantern-glow:rgba(255,183,3,.6);
+  --tone-color:#611c07;
+  --name-color:#4a1503;
+}
+/* 2. Thanh Sắc: Lồng đèn Đỏ Thắm Lụa Hà Đông */
+.tone[data-tone=sac]{
+  left:39%;top:15%;--rot:11deg;animation-delay:.88s;
+  --lantern-bg:linear-gradient(180deg,#ff8591 0%,#e63946 50%,#9e0c1b 100%);
+  --lantern-glow:rgba(230,57,70,.6);
+  --tone-color:#ffffff;
+  --name-color:#ffe4e6;
+}
+/* 3. Thanh Huyền: Lồng đèn Xanh Lam Ngọc Bích */
+.tone[data-tone=huyen]{
+  right:21%;top:18%;--rot:-11deg;animation-delay:1.01s;
+  --lantern-bg:linear-gradient(180deg,#7dd3fc 0%,#0284c7 50%,#034f77 100%);
+  --lantern-glow:rgba(2,132,199,.6);
+  --tone-color:#ffffff;
+  --name-color:#e0f2fe;
+}
+/* 4. Thanh Hỏi: Lồng đèn Tím Hoàng Cung Cố Đô */
+.tone[data-tone=hoi]{
+  right:11%;top:31%;--rot:10deg;animation-delay:1.14s;
+  --lantern-bg:linear-gradient(180deg,#e9d5ff 0%,#9333ea 50%,#581c87 100%);
+  --lantern-glow:rgba(147,51,234,.6);
+  --tone-color:#ffffff;
+  --name-color:#f3e8ff;
+}
+/* 5. Thanh Ngã: Lồng đèn Hồng Cánh Sen */
+.tone[data-tone=nga]{
+  right:12%;top:52%;--rot:-7deg;animation-delay:1.27s;
+  --lantern-bg:linear-gradient(180deg,#fbcfe8 0%,#ec4899 50%,#9d174d 100%);
+  --lantern-glow:rgba(236,72,153,.6);
+  --tone-color:#ffffff;
+  --name-color:#fce7f3;
+}
+/* 6. Thanh Nặng: Lồng đèn Xanh Trúc Bách */
+.tone[data-tone=nang]{
+  right:27%;top:67%;--rot:8deg;animation-delay:1.40s;
+  --lantern-bg:linear-gradient(180deg,#bef264 0%,#16a34a 50%,#14532d 100%);
+  --lantern-glow:rgba(22,163,74,.6);
+  --tone-color:#ffffff;
+  --name-color:#f0fdf4;
+}
 
 .subfeatures{position:absolute;z-index:6;right:3.5%;bottom:8%;display:grid;gap:12px;color:#fff6e2;font-weight:700;font-size:16px;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:fadeIn .55s ease-out 1.80s both}
 .subfeatures span{border-left:3px solid #ffcc77;padding-left:11px}
@@ -91,7 +190,11 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
 @media(max-width:1050px){
   .copy{width:49%}
   .mascot-stage{right:4%;width:49vw}
-  .tone{width:62px;height:56px;font-size:20px}
+  .tone{width:84px;height:74px}
+  .tone:before{width:22px;height:6px;top:-6px}
+  .tone:after{height:18px;bottom:-18px;width:6px}
+  .tone-word{font-size:25px}
+  .tone-name{font-size:10.5px}
   .subfeatures{display:none}
 }
 
@@ -107,7 +210,11 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
   .cta{padding:13px 26px;font-size:14px}
   .mascot-stage{width:min(86vw,460px);right:7%;bottom:5%}
   .tones{inset:auto 0 0;top:280px}
-  .tone{width:54px;height:47px;font-size:18px;border-radius:12px}
+  .tone{width:70px;height:62px;border-radius:44% 44% 46% 46% / 52% 52% 48% 48%;padding:3px 4px}
+  .tone:before{width:20px;height:5px;top:-5px}
+  .tone:after{height:15px;bottom:-15px;width:5px}
+  .tone-word{font-size:22px}
+  .tone-name{font-size:9.5px}
   .tone[data-tone=ngang]{left:7%;top:26%}
   .tone[data-tone=sac]{left:14%;top:9%}
   .tone[data-tone=huyen]{right:16%;top:10%}
@@ -121,13 +228,18 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
   .hero-inner{padding:28px 0 0}
   .actions .cta{font-size:13px;padding:12px 22px}
   .mascot-stage{bottom:6%}
-  .tone{width:48px;height:42px}
+  .tone{width:60px;height:54px}
+  .tone:before{width:16px;height:4px;top:-4px}
+  .tone:after{height:12px;bottom:-12px;width:4px}
+  .tone-word{font-size:19px}
+  .tone-name{font-size:8.5px}
 }
 
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important;opacity:1!important}
   .mascot-intro{animation:none!important;opacity:1!important;transform:none!important}
   .tone{animation:none!important;opacity:1!important;transform:rotate(var(--rot,0))!important}
+  .tone:after{transform:translateX(-50%)!important}
   h1,.lead,.actions,.subfeatures,.hero-note{animation:none!important;opacity:1!important;transform:none!important}
 }
 </style>
@@ -173,18 +285,41 @@ document.head.appendChild(sceneStyle);
       </div>
     </div>
     <div class="tones" aria-label="Chọn thanh điệu để luyện">
-      <button class="tone" data-tone="ngang" aria-label="Luyện thanh ngang">ma</button>
-      <button class="tone" data-tone="sac" aria-label="Luyện thanh sắc">má</button>
-      <button class="tone" data-tone="huyen" aria-label="Luyện thanh huyền">mà</button>
-      <button class="tone" data-tone="hoi" aria-label="Luyện thanh hỏi">mả</button>
-      <button class="tone" data-tone="nga" aria-label="Luyện thanh ngã">mã</button>
-      <button class="tone" data-tone="nang" aria-label="Luyện thanh nặng">mạ</button>
+      <button class="tone" data-tone="ngang" data-word="ma" aria-label="ma – Thanh Ngang">
+        <span class="tone-word">ma</span>
+        <span class="tone-name">Thanh Ngang</span>
+      </button>
+      <button class="tone" data-tone="sac" data-word="má" aria-label="má – Thanh Sắc">
+        <span class="tone-word">má</span>
+        <span class="tone-name">Thanh Sắc</span>
+      </button>
+      <button class="tone" data-tone="huyen" data-word="mà" aria-label="mà – Thanh Huyền">
+        <span class="tone-word">mà</span>
+        <span class="tone-name">Thanh Huyền</span>
+      </button>
+      <button class="tone" data-tone="hoi" data-word="mả" aria-label="mả – Thanh Hỏi">
+        <span class="tone-word">mả</span>
+        <span class="tone-name">Thanh Hỏi</span>
+      </button>
+      <button class="tone" data-tone="nga" data-word="mã" aria-label="mã – Thanh Ngã">
+        <span class="tone-word">mã</span>
+        <span class="tone-name">Thanh Ngã</span>
+      </button>
+      <button class="tone" data-tone="nang" data-word="mạ" aria-label="mạ – Thanh Nặng">
+        <span class="tone-word">mạ</span>
+        <span class="tone-name">Thanh Nặng</span>
+      </button>
     </div>
     <div class="subfeatures">
       <span>Nghe và phân biệt</span>
       <span>Luyện tập cùng AI</span>
       <span>Theo dõi tiến bộ</span>
     </div>
+    <audio id="welcome-audio" preload="auto">
+      <source src="./assets/welcome.ogg" type="audio/ogg">
+      <source src="./assets/welcome.mp3" type="audio/mpeg">
+      <source src="./assets/welcome.wav" type="audio/wav">
+    </audio>
     <span class="hero-note" title="Nhấp để đổi ngẫu nhiên sang cảnh Văn Miếu khác">VietTone AI · Minh họa Văn Miếu – Quốc Tử Giám</span>
   </div>
 </section>
@@ -219,6 +354,168 @@ document.querySelectorAll('[data-tone]').forEach(el => el.addEventListener('clic
   ev.preventDefault();
   openApp(el.dataset.tone);
 }));
+
+// Phát âm thanh khi hover vào từng thẻ thanh điệu
+let activeToneAudioCtx = null;
+let hoverAudioTimer = null;
+
+function playTonePitch(toneId) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!activeToneAudioCtx || activeToneAudioCtx.state === 'closed') {
+      activeToneAudioCtx = new AudioCtx();
+    }
+    if (activeToneAudioCtx.state === 'suspended') {
+      activeToneAudioCtx.resume();
+    }
+    const ctx = activeToneAudioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+
+    osc.type = 'triangle';
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.04);
+
+    switch (toneId) {
+      case 'ngang':
+        osc.frequency.setValueAtTime(330, now);
+        osc.frequency.linearRampToValueAtTime(330, now + 0.5);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc.start(now);
+        osc.stop(now + 0.55);
+        break;
+      case 'sac':
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(490, now + 0.45);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.start(now);
+        osc.stop(now + 0.5);
+        break;
+      case 'huyen':
+        osc.frequency.setValueAtTime(310, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.5);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc.start(now);
+        osc.stop(now + 0.55);
+        break;
+      case 'hoi':
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.55);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+        break;
+      case 'nga':
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.22);
+        gain.gain.setValueAtTime(0.02, now + 0.24);
+        gain.gain.setValueAtTime(0.16, now + 0.28);
+        osc.frequency.exponentialRampToValueAtTime(460, now + 0.5);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc.start(now);
+        osc.stop(now + 0.55);
+        break;
+      case 'nang':
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.28);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc.start(now);
+        osc.stop(now + 0.33);
+        break;
+      default:
+        osc.frequency.setValueAtTime(330, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.start(now);
+        osc.stop(now + 0.45);
+    }
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+  } catch (err) {
+    console.warn('Audio pitch error:', err);
+  }
+}
+
+// Bộ đệm file âm thanh chuyên biệt cho từng thanh điệu (OGG + MP3)
+const toneAudioCache = {};
+['ngang', 'sac', 'huyen', 'hoi', 'nga', 'nang'].forEach(t => {
+  const audio = new Audio();
+  const ogg = document.createElement('source');
+  ogg.src = `./assets/tone-${t}.ogg`;
+  ogg.type = 'audio/ogg';
+  const mp3 = document.createElement('source');
+  mp3.src = `./assets/tone-${t}.mp3`;
+  mp3.type = 'audio/mpeg';
+  audio.appendChild(ogg);
+  audio.appendChild(mp3);
+  audio.preload = 'auto';
+  toneAudioCache[t] = audio;
+});
+
+let currentToneAudio = null;
+
+function speakWithFallbackSpeech(word) {
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(word);
+      u.lang = 'vi-VN';
+      u.rate = 0.85;
+      const viVoices = window.speechSynthesis.getVoices().filter(v => v.lang.includes('vi'));
+      if (viVoices.length > 0) u.voice = viVoices[0];
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      console.warn('Speech fallback error on hover:', e);
+    }
+  }
+}
+
+function speakToneWord(word, toneId) {
+  // Dừng âm thanh đang phát trước đó nếu có
+  if (currentToneAudio) {
+    currentToneAudio.pause();
+    currentToneAudio.currentTime = 0;
+  }
+
+  // Phát file âm thanh tương ứng của thẻ
+  const toneAudio = toneAudioCache[toneId];
+  if (toneAudio) {
+    currentToneAudio = toneAudio;
+    toneAudio.currentTime = 0;
+    const playPromise = toneAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Nếu file bị chặn bởi chính sách browser, dùng bộ tổng hợp cao độ và Web Speech API
+        playTonePitch(toneId);
+        speakWithFallbackSpeech(word);
+      });
+    }
+  } else {
+    playTonePitch(toneId);
+    speakWithFallbackSpeech(word);
+  }
+}
+
+document.querySelectorAll('.tone').forEach(el => {
+  const toneId = el.dataset.tone;
+  const word = el.dataset.word || el.querySelector('.tone-word')?.textContent || el.textContent.trim();
+
+  el.addEventListener('mouseenter', () => {
+    clearTimeout(hoverAudioTimer);
+    hoverAudioTimer = setTimeout(() => {
+      speakToneWord(word, toneId);
+    }, 50);
+  });
+
+  el.addEventListener('focus', () => {
+    clearTimeout(hoverAudioTimer);
+    hoverAudioTimer = setTimeout(() => {
+      speakToneWord(word, toneId);
+    }, 50);
+  });
+});
 
 const mascot = document.getElementById('mascot-stage');
 if (window.matchMedia('(pointer:fine)').matches && !window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
@@ -259,6 +556,63 @@ if (heroNote && window.__VIETTONE_ACTIVE_SCENE) {
 setTimeout(() => {
   document.body.classList.add('intro-ready');
 }, 2000);
+
+// Âm thanh chào mừng của Bé Lạc khi load trang:
+// "Cùng Bé Lạc luyện nghe, luyện nói và khám phá thanh điệu tiếng Việt bằng trí tuệ nhân tạo nhé"
+const WELCOME_TEXT = 'Cùng Bé Lạc luyện nghe, luyện nói và khám phá thanh điệu tiếng Việt bằng trí tuệ nhân tạo nhé';
+const welcomeAudio = document.getElementById('welcome-audio') || new Audio('./assets/welcome.mp3');
+let hasSpoken = false;
+
+function speakWithWebSpeech() {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(WELCOME_TEXT);
+    u.lang = 'vi-VN';
+    u.rate = 0.9;
+    u.pitch = 1.05;
+    const viVoices = window.speechSynthesis.getVoices().filter(v => v.lang.includes('vi'));
+    if (viVoices.length > 0) u.voice = viVoices[0];
+    window.speechSynthesis.speak(u);
+    hasSpoken = true;
+  } catch (err) {
+    console.warn('Speech synthesis error:', err);
+  }
+}
+
+function playWelcomeAudio(force = false) {
+  if (hasSpoken && !force) return;
+
+  welcomeAudio.currentTime = 0;
+  const playPromise = welcomeAudio.play();
+
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      hasSpoken = true;
+    }).catch(err => {
+      console.log('Autoplay unmuted blocked by browser policy, queuing for first interaction:', err);
+      // Đợi lần chạm / tương tác đầu tiên của người dùng để phát ngay
+      const playOnFirstTouch = () => {
+        if (!hasSpoken) {
+          welcomeAudio.play().then(() => {
+            hasSpoken = true;
+          }).catch(() => speakWithWebSpeech());
+        }
+        window.removeEventListener('pointerdown', playOnFirstTouch);
+        window.removeEventListener('keydown', playOnFirstTouch);
+      };
+      window.addEventListener('pointerdown', playOnFirstTouch, { once: true });
+      window.addEventListener('keydown', playOnFirstTouch, { once: true });
+    });
+  } else {
+    speakWithWebSpeech();
+  }
+}
+
+// Tự động phát âm thanh chào mừng sau khi Bé Lạc bay vào (~1.1s)
+setTimeout(() => {
+  playWelcomeAudio(false);
+}, 1100);
 </script>
 </body>
 </html>
