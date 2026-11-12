@@ -24,47 +24,123 @@
   }
 }
 
-/* COOL Bé Lạc Animations */
-@keyframes cool-sway {
+/* COOL & Interactive Bé Lạc Mascot Animations */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes listening-wave {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(0.96);
+    opacity: 0.75;
+  }
+}
+
+/* 1. INTRO: Scale/fade in, bay lên 25px, nghiêng vẫy chào, trở về vị trí trung tâm (~2s) */
+@keyframes be-lac-intro {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.88) rotate(0deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05) rotate(-4.5deg);
+  }
+  50% {
+    transform: translateY(4px) scale(0.98) rotate(4deg);
+  }
+  75% {
+    transform: translateY(-5px) scale(1.02) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1) rotate(0deg);
+  }
+}
+
+/* 2. IDLE: Bay bổng nhẹ nhàng 5-8px, chu kỳ 3.8s, nghiêng nhẹ 2 độ */
+@keyframes be-lac-idle {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
   }
-  25% {
-    transform: translateY(-5px) rotate(-3deg);
+  30% {
+    transform: translateY(-7px) rotate(2.2deg);
   }
-  75% {
-    transform: translateY(-5px) rotate(3deg);
+  70% {
+    transform: translateY(-3px) rotate(-2deg);
   }
 }
 
-@keyframes listening-groove {
+/* 3. SHADOW: Co giãn và mờ dần nhịp nhàng khi Bé Lạc bay cao/thấp */
+@keyframes be-lac-shadow {
   0%, 100% {
-    transform: scale(1.03) rotate(-3.5deg);
+    transform: scale(1);
+    opacity: 0.38;
   }
-  50% {
-    transform: scale(1.06) rotate(1.5deg);
+  30% {
+    transform: scale(0.8);
+    opacity: 0.18;
+  }
+  70% {
+    transform: scale(0.92);
+    opacity: 0.28;
   }
 }
 
-@keyframes success-bounce {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  25% {
-    transform: translateY(-18px) scale(1.08);
+/* 4. LISTENING: Nghiêng nhẹ về phía mic, chú ý chăm chú */
+@keyframes be-lac-listening {
+  0%, 100% {
+    transform: translateY(3px) rotate(-3.5deg) scale(1.03);
   }
   50% {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(5px) rotate(-1.5deg) scale(1.05);
   }
-  75% {
-    transform: translateY(-8px) scale(1.04);
+}
+
+/* 5. THINKING: Nghiêng người suy nghĩ, lắc lư nhẹ */
+@keyframes be-lac-thinking {
+  0%, 100% {
+    transform: translateY(0px) rotate(3.5deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+/* 6. SUCCESS: Nhún lên vui mừng, xoay nghiêng vài độ rồi tiếp đất */
+@keyframes be-lac-success {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-22px) scale(1.12) rotate(4deg);
+  }
+  45% {
+    transform: translateY(3px) scale(0.96) rotate(-3deg);
+  }
+  70% {
+    transform: translateY(-10px) scale(1.05) rotate(2deg);
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) rotate(0deg);
   }
 }
 
-@keyframes thoughtful-tilt {
+/* 7. UNCERTAIN: Nghiêng đầu nhẹ suy nghĩ, không buồn bã */
+@keyframes be-lac-uncertain {
   0%, 100% {
     transform: translateY(0) rotate(-4.5deg);
   }
@@ -73,17 +149,35 @@
   }
 }
 
-@keyframes headphone-pulse {
+/* 8. HEADPHONE PULSE: Vòng sóng âm tai nghe */
+@keyframes be-lac-headphone-pulse {
   0%, 100% {
-    transform: scale(1);
-    opacity: 0.8;
+    transform: scale(0.9);
+    opacity: 0.85;
   }
   50% {
-    transform: scale(1.25);
-    opacity: 0.3;
+    transform: scale(1.4);
+    opacity: 0.2;
   }
 }
 
+/* 9. SPARKLE STARS: Ngôi sao vàng ăn mừng nhấp nháy */
+@keyframes be-lac-sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(45deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(90deg);
+    opacity: 0;
+  }
+}
+
+/* Utility Animation Classes */
 .animate-float-gentle {
   animation: float-gentle 3.8s ease-in-out infinite;
 }
@@ -92,26 +186,60 @@
   animation: listening-wave 2s ease-in-out infinite;
 }
 
+.animate-be-lac-intro {
+  animation: be-lac-intro 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-be-lac-idle {
+  animation: be-lac-idle 3.8s ease-in-out infinite;
+}
+
+.animate-be-lac-shadow {
+  animation: be-lac-shadow 3.8s ease-in-out infinite;
+}
+
+.animate-be-lac-listening {
+  animation: be-lac-listening 2.2s ease-in-out infinite;
+}
+
+.animate-be-lac-thinking {
+  animation: be-lac-thinking 2.5s ease-in-out infinite;
+}
+
+.animate-be-lac-success {
+  animation: be-lac-success 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-be-lac-uncertain {
+  animation: be-lac-uncertain 2.8s ease-in-out infinite;
+}
+
+.animate-be-lac-headphone-pulse {
+  animation: be-lac-headphone-pulse 1.4s ease-in-out infinite;
+}
+
+.animate-be-lac-sparkle {
+  animation: be-lac-sparkle 1.2s ease-in-out infinite;
+}
+
+/* Legacy aliases for backwards compatibility */
 .animate-cool-sway {
-  animation: cool-sway 3.6s ease-in-out infinite;
+  animation: be-lac-idle 3.8s ease-in-out infinite;
 }
-
 .animate-listening-groove {
-  animation: listening-groove 2.4s ease-in-out infinite;
+  animation: be-lac-listening 2.2s ease-in-out infinite;
 }
-
 .animate-success-bounce {
-  animation: success-bounce 1.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: be-lac-success 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
-
 .animate-thoughtful-tilt {
-  animation: thoughtful-tilt 3.2s ease-in-out infinite;
+  animation: be-lac-uncertain 2.8s ease-in-out infinite;
 }
-
 .animate-headphone-pulse {
-  animation: headphone-pulse 1.6s ease-in-out infinite;
+  animation: be-lac-headphone-pulse 1.4s ease-in-out infinite;
 }
 
+/* Tôn trọng người dùng giảm chuyển động (prefers-reduced-motion) */
 @media (prefers-reduced-motion: reduce) {
   .animate-float-gentle,
   .animate-listening-wave,
@@ -119,7 +247,17 @@
   .animate-listening-groove,
   .animate-success-bounce,
   .animate-thoughtful-tilt,
-  .animate-headphone-pulse {
+  .animate-headphone-pulse,
+  .animate-be-lac-intro,
+  .animate-be-lac-idle,
+  .animate-be-lac-shadow,
+  .animate-be-lac-listening,
+  .animate-be-lac-thinking,
+  .animate-be-lac-success,
+  .animate-be-lac-uncertain,
+  .animate-be-lac-headphone-pulse,
+  .animate-be-lac-sparkle {
     animation: none !important;
+    transition: none !important;
   }
 }

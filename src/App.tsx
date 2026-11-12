@@ -137,6 +137,8 @@ export default function App() {
   });
 
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [isIntroActive, setIsIntroActive] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [audioVolume, setAudioVolume] = useState<number>(0);
 
@@ -194,6 +196,7 @@ export default function App() {
     if (currentRoute === '/app') {
       if (!practiceIntroPlayedRef.current) {
         practiceIntroPlayedRef.current = true;
+        setIsIntroActive(true);
         const timer = window.setTimeout(() => {
           playPracticeWelcomeAudio(selectedTone.id);
         }, 350);
@@ -202,6 +205,7 @@ export default function App() {
     } else {
       // Khi trở về trang chủ, reset cờ và dừng mọi âm thanh đang phát
       practiceIntroPlayedRef.current = false;
+      setIsIntroActive(false);
       stopAnyVoiceAudio();
     }
   }, [currentRoute, selectedTone.id]);
@@ -281,8 +285,8 @@ export default function App() {
 
   // 3. Kết thúc một đợt đọc và tổng hợp F0 + Điểm số + Phản hồi + Motivation Engine
   const finalizeRecognition = useCallback(async () => {
-    await speechEngineInstance.stopListening();
     setIsListening(false);
+    setIsAnalyzing(true);
     setAudioVolume(0);
 
     if (listeningTimerRef.current) {
@@ -290,139 +294,147 @@ export default function App() {
       listeningTimerRef.current = null;
     }
 
-    // A. Lấy buffer âm thanh thực tế của lượt đọc
-    const recordedAudio = speechEngineInstance.getLastRecordedAudio();
-    let contour: F0ContourData | null = null;
+    try {
+      await speechEngineInstance.stopListening();
 
-    if (recordedAudio && recordedAudio.buffer.length > 0) {
-      contour = PitchEstimator.extractF0Contour(
-        recordedAudio.buffer,
-        recordedAudio.sampleRate
-      );
-    } else {
-      contour = {
-        points: [],
-        durationMs: 0,
-        meanPitchHz: 0,
-        minPitchHz: 0,
-        maxPitchHz: 0,
-        pitchRangeHz: 0,
-        pitchSlopeHzPerSec: 0,
-        isReliable: false,
-        unreliableReason: 'Chưa thu nhận được tín hiệu âm thanh từ microphone.',
-        voicedFramesCount: 0,
-        totalFramesCount: 0,
+      // A. Lấy buffer âm thanh thực tế của lượt đọc
+      const recordedAudio = speechEngineInstance.getLastRecordedAudio();
+      let contour: F0ContourData | null = null;
+
+      if (recordedAudio && recordedAudio.buffer.length > 0) {
+        contour = PitchEstimator.extractF0Contour(
+          recordedAudio.buffer,
+          recordedAudio.sampleRate
+        );
+      } else {
+        contour = {
+          points: [],
+          durationMs: 0,
+          meanPitchHz: 0,
+          minPitchHz: 0,
+          maxPitchHz: 0,
+          pitchRangeHz: 0,
+          pitchSlopeHzPerSec: 0,
+          isReliable: false,
+          unreliableReason: 'Chưa thu nhận được tín hiệu âm thanh từ microphone.',
+          voicedFramesCount: 0,
+          totalFramesCount: 0,
+        };
+      }
+      setUserContour(contour);
+
+      // B. Lấy kết quả AI từ Teachable Machine
+      const stabilized = speechEngineInstance.getStabilizedResult();
+
+      // C. MÔ HÌNH LAI: Kết hợp Teachable Machine + Bộ phân loại âm vị học F0
+      const hybridRes = HybridToneEngine.evaluateHybrid(stabilized.averageScores, contour);
+
+      setCurrentProbabilities(hybridRes.combinedScores);
+      setTopToneName(hybridRes.topTone);
+      setTopToneScore(hybridRes.topScore);
+
+      // D. Lấy mẫu tham chiếu chuẩn thật
+      const currentRef = ReferenceAudioService.getReferenceSample(selectedTone.id);
+      setRefSample(currentRef);
+
+      // E. Tính điểm tương đồng F0 (0–100)
+      const f0ScoreRes = F0ScoringService.calculateF0Similarity(contour, currentRef);
+      setF0ScoreResult(f0ScoreRes);
+
+      // F. Phản hồi sư phạm chỉ rõ lỗi có thể cải thiện kết hợp giải thích mô hình lai
+      const assessment = FeedbackAdvisor.generateAssessment({
+        targetTone: selectedTone,
+        predictedToneName: hybridRes.topTone,
+        probabilities: hybridRes.combinedScores,
+        userContour: contour,
+        refSample: currentRef,
+        f0ScoreResult: f0ScoreRes,
+        hybridExplanation: hybridRes.explanation,
+        agreementStatus: hybridRes.agreementStatus,
+      });
+      setFeedbackAssessment(assessment);
+
+      // G. Lưu lượt luyện vào localStorage
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      const isMatch =
+        hybridRes.topTone?.trim().toLowerCase() === selectedTone.name.trim().toLowerCase();
+
+      let audioQuality: PracticeAttempt['audioQuality'] = 'good';
+      if (!contour.isReliable) {
+        audioQuality = 'unreliable_pitch';
+      }
+
+      const attempt: PracticeAttempt = {
+        id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: Date.now(),
+        dateStr,
+        targetToneId: selectedTone.id,
+        targetToneName: selectedTone.name,
+        targetWord: selectedTone.word,
+        predictedToneName: hybridRes.topTone,
+        confidence: hybridRes.topScore,
+        top2Margin: assessment.top2Margin,
+        isAiConfident: hybridRes.isAiConfident,
+        isMatch,
+        hasReliableF0: contour.isReliable,
+        f0Score: f0ScoreRes.score,
+        meanPitchHz: contour.meanPitchHz || undefined,
+        audioQuality,
+        adviceSummary: assessment.headline,
+        engineMode: 'hybrid',
+        hybridAgreement: hybridRes.agreementStatus,
       };
-    }
-    setUserContour(contour);
 
-    // B. Lấy kết quả AI từ Teachable Machine
-    const stabilized = speechEngineInstance.getStabilizedResult();
+      ProgressStorage.saveAttempt(attempt);
 
-    // C. MÔ HÌNH LAI: Kết hợp Teachable Machine + Bộ phân loại âm vị học F0
-    const hybridRes = HybridToneEngine.evaluateHybrid(stabilized.averageScores, contour);
+      // H. Motivation Engine: Đánh giá và chọn thông điệp động viên
+      const allUpdatedAttempts = ProgressStorage.getAllAttempts();
+      const updatedStreak = ProgressStorage.getStreakInfo();
+      const motMessage = MotivationEngine.evaluateAttempt(attempt, allUpdatedAttempts, updatedStreak);
+      setMotivationMessage(motMessage);
 
-    setCurrentProbabilities(hybridRes.combinedScores);
-    setTopToneName(hybridRes.topTone);
-    setTopToneScore(hybridRes.topScore);
-
-    // D. Lấy mẫu tham chiếu chuẩn thật
-    const currentRef = ReferenceAudioService.getReferenceSample(selectedTone.id);
-    setRefSample(currentRef);
-
-    // E. Tính điểm tương đồng F0 (0–100)
-    const f0ScoreRes = F0ScoringService.calculateF0Similarity(contour, currentRef);
-    setF0ScoreResult(f0ScoreRes);
-
-    // F. Phản hồi sư phạm chỉ rõ lỗi có thể cải thiện kết hợp giải thích mô hình lai
-    const assessment = FeedbackAdvisor.generateAssessment({
-      targetTone: selectedTone,
-      predictedToneName: hybridRes.topTone,
-      probabilities: hybridRes.combinedScores,
-      userContour: contour,
-      refSample: currentRef,
-      f0ScoreResult: f0ScoreRes,
-      hybridExplanation: hybridRes.explanation,
-      agreementStatus: hybridRes.agreementStatus,
-    });
-    setFeedbackAssessment(assessment);
-
-    // G. Lưu lượt luyện vào localStorage
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-
-    const isMatch =
-      hybridRes.topTone?.trim().toLowerCase() === selectedTone.name.trim().toLowerCase();
-
-    let audioQuality: PracticeAttempt['audioQuality'] = 'good';
-    if (!contour.isReliable) {
-      audioQuality = 'unreliable_pitch';
-    }
-
-    const attempt: PracticeAttempt = {
-      id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      timestamp: Date.now(),
-      dateStr,
-      targetToneId: selectedTone.id,
-      targetToneName: selectedTone.name,
-      targetWord: selectedTone.word,
-      predictedToneName: hybridRes.topTone,
-      confidence: hybridRes.topScore,
-      top2Margin: assessment.top2Margin,
-      isAiConfident: hybridRes.isAiConfident,
-      isMatch,
-      hasReliableF0: contour.isReliable,
-      f0Score: f0ScoreRes.score,
-      meanPitchHz: contour.meanPitchHz || undefined,
-      audioQuality,
-      adviceSummary: assessment.headline,
-      engineMode: 'hybrid',
-      hybridAgreement: hybridRes.agreementStatus,
-    };
-
-    ProgressStorage.saveAttempt(attempt);
-
-    // H. Motivation Engine: Đánh giá và chọn thông điệp động viên
-    const allUpdatedAttempts = ProgressStorage.getAllAttempts();
-    const updatedStreak = ProgressStorage.getStreakInfo();
-    const motMessage = MotivationEngine.evaluateAttempt(attempt, allUpdatedAttempts, updatedStreak);
-    setMotivationMessage(motMessage);
-
-    // Kích hoạt hiệu ứng ăn mừng hoặc giọng động viên của Bé Lạc
-    if (isMatch) {
-      setEncourageVoiceText(null);
-      if (motMessage.celebrate) {
-        setIsConfettiActive(true);
-        if (motMessage.state === 'ten_attempts' || motMessage.state === 'three_day_streak') {
-          playCelebrationChime('milestone');
+      // Kích hoạt hiệu ứng ăn mừng hoặc giọng động viên của Bé Lạc
+      if (isMatch) {
+        setEncourageVoiceText(null);
+        if (motMessage.celebrate) {
+          setIsConfettiActive(true);
+          if (motMessage.state === 'ten_attempts' || motMessage.state === 'three_day_streak') {
+            playCelebrationChime('milestone');
+          } else {
+            playCelebrationChime('success');
+          }
         } else {
           playCelebrationChime('success');
         }
       } else {
-        playCelebrationChime('success');
+        // Người dùng chưa nói đúng (isMatch = false)
+        // Phát âm thanh khích lệ nhẹ nhàng và ngẫu nhiên 1 trong 3 file audio hướng dẫn của Bé Lạc
+        playCelebrationChime('encourage');
+        window.setTimeout(() => {
+          const chosenIdx = playRandomEncourageAudio();
+          if (chosenIdx > 0 && chosenIdx <= ENCOURAGE_VOICE_MESSAGES.length) {
+            setEncourageVoiceText(ENCOURAGE_VOICE_MESSAGES[chosenIdx - 1]);
+          }
+        }, 350);
       }
-    } else {
-      // Người dùng chưa nói đúng (isMatch = false)
-      // Phát âm thanh khích lệ nhẹ nhàng và ngẫu nhiên 1 trong 3 file audio hướng dẫn của Bé Lạc
-      playCelebrationChime('encourage');
-      window.setTimeout(() => {
-        const chosenIdx = playRandomEncourageAudio();
-        if (chosenIdx > 0 && chosenIdx <= ENCOURAGE_VOICE_MESSAGES.length) {
-          setEncourageVoiceText(ENCOURAGE_VOICE_MESSAGES[chosenIdx - 1]);
-        }
-      }, 350);
-    }
 
-    refreshStorageData();
+      refreshStorageData();
+    } finally {
+      setIsAnalyzing(false);
+    }
   }, [selectedTone, refreshStorageData]);
 
   // 4. Bắt đầu lắng nghe
   const handleStartListening = async () => {
     stopAnyVoiceAudio();
     setEncourageVoiceText(null);
+    setIsIntroActive(false);
+    setIsAnalyzing(false);
     setPermissionError(null);
     setUserContour(null);
     setF0ScoreResult(null);
@@ -436,6 +448,7 @@ export default function App() {
       handleFrameUpdate,
       (errType, message) => {
         setIsListening(false);
+        setIsAnalyzing(false);
         if (errType === 'permission_denied') {
           setPermissionError(message);
         } else {
@@ -548,8 +561,12 @@ export default function App() {
             <BeLacHeroCenter
               selectedTone={selectedTone}
               isListening={isListening}
+              isAnalyzing={isAnalyzing}
               audioVolume={audioVolume}
               assessment={feedbackAssessment}
+              permissionError={permissionError}
+              isIntroActive={isIntroActive}
+              onIntroComplete={() => setIsIntroActive(false)}
             />
 
             {/* B. Khung hội thoại Bé Lạc (Microphone & KẾT QUẢ AI TRỰC TIẾP) */}
