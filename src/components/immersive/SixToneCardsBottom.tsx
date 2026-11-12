@@ -56,7 +56,7 @@ export const SixToneCardsBottom: React.FC<SixToneCardsBottomProps> = ({
               {/* Hàng 1: Từ phát âm to đậm và Loa nghe mẫu bên cạnh */}
               <div className="flex items-center justify-center gap-1.5 w-full">
                 <span
-                  className={`text-2xl sm:text-3xl font-black tracking-tight leading-none ${
+                  className={`text-3xl sm:text-4xl font-black tracking-tight leading-none ${
                     isSelected ? 'text-amber-300 drop-shadow-xs' : 'text-white'
                   }`}
                 >
@@ -75,15 +75,15 @@ export const SixToneCardsBottom: React.FC<SixToneCardsBottomProps> = ({
                   title={`Nghe phát âm chuẩn: ${tone.word}`}
                   aria-label={`Nghe mẫu ${tone.word}`}
                 >
-                  <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Volume2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </button>
               </div>
 
               {/* Hàng 2: Tên thanh bên dưới */}
               <div className="mt-1.5 w-full">
                 <span
-                  className={`text-[11px] sm:text-xs font-semibold block truncate ${
-                    isSelected ? 'text-orange-200 font-bold' : 'text-white/70'
+                  className={`text-xs sm:text-sm font-bold block truncate ${
+                    isSelected ? 'text-orange-200' : 'text-white/80'
                   }`}
                 >
                   {tone.name}

@@ -586,8 +586,8 @@ export default function App() {
 
             {/* Fallback Mode Note nếu URL mô hình lỗi mạng */}
             {isFallbackMode && (
-              <div className="w-full p-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11px] flex items-center gap-2 shadow-xs backdrop-blur-md">
-                <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <div className="w-full p-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs sm:text-sm flex items-center gap-2 shadow-xs backdrop-blur-md">
+                <Info className="w-4 h-4 text-amber-400 shrink-0" />
                 <span className="truncate">
                   Chế độ mô phỏng F0 thời gian thực đang chạy trực tiếp trên trình duyệt.
                 </span>
@@ -595,8 +595,8 @@ export default function App() {
             )}
 
             {/* Footer Quyền riêng tư */}
-            <div className="w-full pt-1 pb-1 flex items-center justify-center gap-1.5 text-center text-[10px] sm:text-xs text-white/60">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <div className="w-full pt-1.5 pb-1 flex items-center justify-center gap-2 text-center text-xs sm:text-sm text-white/75">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>
                 Âm thanh được phân tích trực tiếp trên thiết bị của bạn, tuyệt đối bảo mật.
               </span>

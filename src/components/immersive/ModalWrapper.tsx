@@ -73,13 +73,13 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 id="modal-title" className="text-base sm:text-lg font-extrabold text-slate-900 truncate">
+                <h3 id="modal-title" className="text-lg sm:text-xl font-black text-slate-900 truncate">
                   {title}
                 </h3>
                 {badge}
               </div>
               {subtitle && (
-                <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5 truncate">{subtitle}</p>
               )}
             </div>
           </div>

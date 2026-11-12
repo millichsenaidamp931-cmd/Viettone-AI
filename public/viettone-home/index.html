@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#172333">
-<meta name="description" content="VietTone AI – Luyện nghe và phát âm 6 thanh điệu tiếng Việt cùng Bé Lạc tại Văn Miếu.">
+<meta name="description" content="VietTone AI – Luyện nghe và phát âm 6 thanh điệu tiếng Việt cùng Bé Lạc khám phá cảnh đẹp các vùng miền Việt Nam.">
 <title>VietTone AI | Học trọn vẹn 6 thanh tiếng Việt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,8 +58,8 @@ h1 em{font-style:normal;color:#ffd68b;text-shadow:0 3px 18px rgba(240,72,13,.4)}
 .tone{
   position:absolute;
   pointer-events:auto;
-  width:92px;
-  height:82px;
+  width:96px;
+  height:88px;
   background-image:radial-gradient(circle at 50% 40%, rgba(255,255,255,.45) 0%, transparent 68%), repeating-linear-gradient(90deg, transparent 0, transparent 15px, rgba(255,255,255,.18) 15px, rgba(0,0,0,.08) 17px), var(--lantern-bg);
   background-blend-mode:screen, normal, normal;
   border:2px solid rgba(255,255,255,.65);
@@ -69,8 +69,8 @@ h1 em{font-style:normal;color:#ffd68b;text-shadow:0 3px 18px rgba(240,72,13,.4)}
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:1px;
-  padding:5px 6px;
+  gap:2px;
+  padding:6px 6px;
   color:var(--tone-color, #fff);
   transform:rotate(var(--rot,0));
   transition:transform .24s cubic-bezier(.34,1.56,.64,1), filter .2s, box-shadow .24s;
@@ -108,8 +108,8 @@ h1 em{font-style:normal;color:#ffd68b;text-shadow:0 3px 18px rgba(240,72,13,.4)}
   z-index:1;
 }
 
-.tone-word{font-size:29px;font-weight:800;line-height:1.05;color:var(--tone-color,#fff);text-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .2s}
-.tone-name{font-size:11.5px;font-weight:700;color:var(--name-color,#fff);opacity:.95;letter-spacing:-.2px;line-height:1;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.tone-line-prefix, .tone-word{font-size:13px;font-weight:700;color:var(--name-color,#fff);opacity:.95;letter-spacing:.3px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.tone-line-name, .tone-name{font-size:22px;font-weight:800;line-height:1.08;color:var(--tone-color,#fff);text-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .2s;white-space:nowrap}
 
 .tone:hover{transform:rotate(0) scale(1.16)!important;filter:brightness(1.12);box-shadow:0 14px 34px var(--lantern-glow), inset 0 0 20px rgba(255,255,255,.5);z-index:12;animation-play-state:paused}
 .tone:hover:after{transform:translateX(-50%) rotate(12deg)}
@@ -190,11 +190,11 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
 @media(max-width:1050px){
   .copy{width:49%}
   .mascot-stage{right:4%;width:49vw}
-  .tone{width:84px;height:74px}
+  .tone{width:88px;height:80px}
   .tone:before{width:22px;height:6px;top:-6px}
   .tone:after{height:18px;bottom:-18px;width:6px}
-  .tone-word{font-size:25px}
-  .tone-name{font-size:10.5px}
+  .tone-line-prefix, .tone-word{font-size:12px}
+  .tone-line-name, .tone-name{font-size:19px}
   .subfeatures{display:none}
 }
 
@@ -210,11 +210,11 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
   .cta{padding:13px 26px;font-size:14px}
   .mascot-stage{width:min(86vw,460px);right:7%;bottom:5%}
   .tones{inset:auto 0 0;top:280px}
-  .tone{width:70px;height:62px;border-radius:44% 44% 46% 46% / 52% 52% 48% 48%;padding:3px 4px}
+  .tone{width:76px;height:70px;border-radius:44% 44% 46% 46% / 52% 52% 48% 48%;padding:4px}
   .tone:before{width:20px;height:5px;top:-5px}
   .tone:after{height:15px;bottom:-15px;width:5px}
-  .tone-word{font-size:22px}
-  .tone-name{font-size:9.5px}
+  .tone-line-prefix, .tone-word{font-size:10.5px}
+  .tone-line-name, .tone-name{font-size:16px}
   .tone[data-tone=ngang]{left:7%;top:26%}
   .tone[data-tone=sac]{left:14%;top:9%}
   .tone[data-tone=huyen]{right:16%;top:10%}
@@ -228,11 +228,11 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
   .hero-inner{padding:28px 0 0}
   .actions .cta{font-size:13px;padding:12px 22px}
   .mascot-stage{bottom:6%}
-  .tone{width:60px;height:54px}
+  .tone{width:68px;height:62px}
   .tone:before{width:16px;height:4px;top:-4px}
   .tone:after{height:12px;bottom:-12px;width:4px}
-  .tone-word{font-size:19px}
-  .tone-name{font-size:8.5px}
+  .tone-line-prefix, .tone-word{font-size:9.5px}
+  .tone-line-name, .tone-name{font-size:14px}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -244,14 +244,14 @@ body.intro-ready .tone[data-tone=nang]{animation-delay:3.0s}
 }
 </style>
 <script>
-// Danh sách các cảnh nền Văn Miếu 3D hoạt hình màu sắc tươi sáng dễ thương theo phong cách Bé Lạc
+// Danh sách cảnh đẹp các vùng miền Việt Nam phong cách 3D hoạt hình tươi sáng cùng Bé Lạc
 const SCENE_BACKGROUNDS = [
-  { src: './assets/scene-bg-1.jpg', note: 'VietTone AI · Khuê Văn Các 3D bên hồ sen rực rỡ' },
-  { src: './assets/scene-bg-2.jpg', note: 'VietTone AI · Giếng Thiên Quang 3D nước ngọc trong lành' },
-  { src: './assets/scene-bg-3.jpg', note: 'VietTone AI · Vườn bia Tiến Sĩ 3D rợp bóng tre trúc' },
-  { src: './assets/scene-bg-4.jpg', note: 'VietTone AI · Sân rồng Điện Đại Thành 3D lung linh hoa đăng' },
-  { src: './assets/scene-bg-5.jpg', note: 'VietTone AI · Cổng Tam Quan Đại Trung Môn 3D cổ kính' },
-  { src: './assets/scene-bg.jpg', note: 'VietTone AI · Văn Miếu – Quốc Tử Giám truyền thống' }
+  { src: './assets/scene-bg-1.jpg', note: 'VietTone AI · Vịnh Hạ Long 3D kỳ vĩ bên làn nước ngọc bích (Miền Bắc)' },
+  { src: './assets/scene-bg-2.jpg', note: 'VietTone AI · Ruộng bậc thang Tây Bắc 3D mùa lúa vàng óng ả (Tây Bắc)' },
+  { src: './assets/scene-bg-3.jpg', note: 'VietTone AI · Phố cổ Hội An 3D lung linh sắc màu lồng đèn (Miền Trung)' },
+  { src: './assets/scene-bg-4.jpg', note: 'VietTone AI · Cố đô Huế 3D thơ mộng bên dòng sông Hương (Miền Trung)' },
+  { src: './assets/scene-bg-5.jpg', note: 'VietTone AI · Chợ nổi sông nước Miền Tây 3D trĩu quả ghe thuyền (Miền Nam)' },
+  { src: './assets/scene-bg.jpg', note: 'VietTone AI · Cao nguyên Đà Lạt 3D rực rỡ hoa dã quỳ và đồi chè (Tây Nguyên)' }
 ];
 
 // Chọn ngẫu nhiên khi mở trang
@@ -285,29 +285,29 @@ document.head.appendChild(sceneStyle);
       </div>
     </div>
     <div class="tones" aria-label="Chọn thanh điệu để luyện">
-      <button class="tone" data-tone="ngang" data-word="ma" aria-label="ma – Thanh Ngang">
-        <span class="tone-word">ma</span>
-        <span class="tone-name">Thanh Ngang</span>
+      <button class="tone" data-tone="ngang" data-word="Thanh Ngang" aria-label="Thanh Ngang">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Ngang</span>
       </button>
-      <button class="tone" data-tone="sac" data-word="má" aria-label="má – Thanh Sắc">
-        <span class="tone-word">má</span>
-        <span class="tone-name">Thanh Sắc</span>
+      <button class="tone" data-tone="sac" data-word="Thanh Sắc" aria-label="Thanh Sắc">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Sắc</span>
       </button>
-      <button class="tone" data-tone="huyen" data-word="mà" aria-label="mà – Thanh Huyền">
-        <span class="tone-word">mà</span>
-        <span class="tone-name">Thanh Huyền</span>
+      <button class="tone" data-tone="huyen" data-word="Thanh Huyền" aria-label="Thanh Huyền">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Huyền</span>
       </button>
-      <button class="tone" data-tone="hoi" data-word="mả" aria-label="mả – Thanh Hỏi">
-        <span class="tone-word">mả</span>
-        <span class="tone-name">Thanh Hỏi</span>
+      <button class="tone" data-tone="hoi" data-word="Thanh Hỏi" aria-label="Thanh Hỏi">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Hỏi</span>
       </button>
-      <button class="tone" data-tone="nga" data-word="mã" aria-label="mã – Thanh Ngã">
-        <span class="tone-word">mã</span>
-        <span class="tone-name">Thanh Ngã</span>
+      <button class="tone" data-tone="nga" data-word="Thanh Ngã" aria-label="Thanh Ngã">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Ngã</span>
       </button>
-      <button class="tone" data-tone="nang" data-word="mạ" aria-label="mạ – Thanh Nặng">
-        <span class="tone-word">mạ</span>
-        <span class="tone-name">Thanh Nặng</span>
+      <button class="tone" data-tone="nang" data-word="Thanh Nặng" aria-label="Thanh Nặng">
+        <span class="tone-line-prefix">Thanh</span>
+        <span class="tone-line-name">Nặng</span>
       </button>
     </div>
     <div class="subfeatures">
@@ -504,7 +504,7 @@ function speakToneWord(word, toneId) {
 
 document.querySelectorAll('.tone').forEach(el => {
   const toneId = el.dataset.tone;
-  const word = el.dataset.word || el.querySelector('.tone-word')?.textContent || el.textContent.trim();
+  const word = el.dataset.word || el.querySelector('.tone-line-name')?.textContent || el.textContent.trim();
 
   el.addEventListener('mouseenter', () => {
     clearTimeout(hoverAudioTimer);

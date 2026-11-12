@@ -267,112 +267,103 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
         </div>
 
         {/* 2. Tiêu đề và nội dung phản hồi của Bé Lạc */}
-        <div className="space-y-1 mb-2">
+        <div className="space-y-1.5 mb-2">
           {/* Headline lớn với cặp tia sáng nhỏ hai bên (như ảnh mẫu) */}
           <div className="flex items-center justify-center gap-2">
-            <span className="text-amber-300 text-base sm:text-lg font-black select-none drop-shadow-xs">
+            <span className="text-amber-300 text-lg sm:text-xl font-black select-none drop-shadow-xs">
               ◟
             </span>
-            <h3 className="text-base sm:text-lg md:text-xl font-black text-white tracking-tight drop-shadow-sm">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-tight drop-shadow-sm">
               {content.headline}
             </h3>
-            <span className="text-amber-300 text-base sm:text-lg font-black select-none drop-shadow-xs">
+            <span className="text-amber-300 text-lg sm:text-xl font-black select-none drop-shadow-xs">
               ◞
             </span>
           </div>
 
           {/* Subheadline (Màu vàng sáng ấm áp) */}
-          <p className="text-xs sm:text-sm md:text-base font-extrabold text-[#FEF08A] drop-shadow-xs">
+          <p className="text-sm sm:text-base md:text-lg font-extrabold text-[#FEF08A] drop-shadow-xs">
             {content.subheadline}
           </p>
 
-          {/* Lời thoại động viên trực tiếp của Bé Lạc khi phát âm chưa đúng */}
-          {encourageVoiceText && dialogueState !== 'confident_match' && (
-            <div style={{ display: "none" }} className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/30 via-red-500/25 to-amber-500/30 border border-orange-400/50 text-amber-200 text-xs sm:text-sm font-semibold max-w-lg mx-auto shadow-md backdrop-blur-md animate-pulse">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span>&ldquo;{encourageVoiceText}&rdquo;</span>
-            </div>
-          )}
-
-          {(!encourageVoiceText || dialogueState === 'confident_match') && (
-            <p className="text-[11px] sm:text-xs text-white/80 max-w-md mx-auto pt-0.5">
-              {content.subtext}
-            </p>
-          )}
+          {/* Subtext hỗ trợ */}
+          <p className="text-xs sm:text-sm text-white/85 max-w-lg mx-auto pt-0.5 leading-relaxed">
+            {content.subtext}
+          </p>
         </div>
 
         {/* 3. BẢNG KẾT QUẢ AI ĐỐI CHIẾU TRỰC TIẾP */}
         {assessment && !isListening && (
-          <div className="mt-4 pt-3 border-t border-white/15 space-y-3 animate-in fade-in duration-200">
+          <div className="mt-4 pt-3.5 border-t border-white/15 space-y-3 animate-in fade-in duration-200">
             {/* Lưới 4 chỉ số thực trên nền kính mờ */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
               {/* Bạn đang luyện */}
-              <div className="bg-white/10 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl border border-white/15">
-                <span className="text-[10px] uppercase font-bold text-white/60 block mb-0.5">
+              <div className="bg-white/10 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15">
+                <span className="text-[11px] sm:text-xs uppercase font-bold text-white/70 block mb-0.5">
                   Bạn đang luyện
                 </span>
-                <span className="text-sm sm:text-base font-black text-white block truncate">
+                <span className="text-base sm:text-lg font-black text-white block truncate">
                   {selectedTone.word.toUpperCase()}
                 </span>
-                <span className="text-[10px] text-white/70 font-medium block truncate">
+                <span className="text-xs text-white/80 font-semibold block truncate">
                   {selectedTone.name}
                 </span>
               </div>
 
               {/* AI nhận diện */}
               <div
-                className={`p-2 sm:p-2.5 rounded-2xl border backdrop-blur-md ${
+                className={`p-2.5 sm:p-3 rounded-2xl border backdrop-blur-md ${
                   assessment.predictedToneName?.trim().toLowerCase() ===
                   selectedTone.name.trim().toLowerCase()
                     ? 'bg-emerald-500/25 border-emerald-400/50 text-white'
                     : 'bg-amber-500/25 border-amber-400/50 text-white'
                 }`}
               >
-                <span className="text-[10px] uppercase font-bold text-white/60 block mb-0.5">
+                <span className="text-[11px] sm:text-xs uppercase font-bold text-white/70 block mb-0.5">
                   AI nhận diện
                 </span>
-                <span className="text-sm sm:text-base font-black block truncate text-amber-300">
+                <span className="text-base sm:text-lg font-black block truncate text-amber-300">
                   {predictedWord}
                 </span>
-                <span className="text-[10px] font-semibold block truncate opacity-90">
+                <span className="text-xs font-bold block truncate opacity-95">
                   {assessment.predictedToneName || 'Chưa rõ'}
                 </span>
               </div>
 
               {/* Độ tin cậy AI */}
-              <div className="bg-white/10 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl border border-white/15">
-                <span className="text-[10px] uppercase font-bold text-white/60 block mb-0.5">
+              <div className="bg-white/10 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15">
+                <span className="text-[11px] sm:text-xs uppercase font-bold text-white/70 block mb-0.5">
                   Độ tin cậy AI
                 </span>
-                <span className="text-sm sm:text-base font-black text-white block">
+                <span className="text-base sm:text-lg font-black text-white block">
                   {Math.round(assessment.confidence * 100)}%
                 </span>
-                <span className="text-[10px] text-white/70 font-medium block truncate">
+                <span className="text-xs text-white/80 font-semibold block truncate">
                   {assessment.isAiConfident ? 'Tự tin cao' : 'Cần thử lại'}
                 </span>
               </div>
 
               {/* Điểm tương đồng F0 */}
-              <div className="bg-white/10 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl border border-white/15">
-                <span className="text-[10px] uppercase font-bold text-white/60 block mb-0.5">
+              <div className="bg-white/10 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-white/15">
+                <span className="text-[11px] sm:text-xs uppercase font-bold text-white/70 block mb-0.5">
                   Độ giống đường F0
                 </span>
                 {typeof f0ScoreResult?.score === 'number' && f0ScoreResult.score >= 0 ? (
                   <>
-                    <span className="text-sm sm:text-base font-black text-amber-300 block">
+                    <span className="text-base sm:text-lg font-black text-amber-300 block">
                       {f0ScoreResult.score}
-                      <span className="text-xs text-white/60 font-normal">/100</span>
+                      <span className="text-xs sm:text-sm text-white/70 font-normal">/100</span>
                     </span>
-                    <span className="text-[10px] text-emerald-300 font-semibold block truncate">
+                    <span className="text-xs text-emerald-300 font-bold block truncate">
                       F0 hợp lệ
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-xs font-bold text-white/80 block my-1">
+                    <span className="text-sm font-bold text-white/90 block my-1">
                       Chưa đủ F0
                     </span>
-                    <span className="text-[10px] text-white/60 block truncate">
+                    <span className="text-xs text-white/70 block truncate">
                       Nói to hơn nhé
                     </span>
                   </>
@@ -382,32 +373,32 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
 
             {/* Lời khuyên sư phạm ngắn */}
             {assessment.adviceText && (
-              <div className="bg-amber-500/15 p-2.5 rounded-2xl border border-amber-400/30 text-xs text-amber-100 text-left flex items-start gap-2 backdrop-blur-xs">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-white">Mẹo luyện: </span>
-                  <span>{assessment.adviceText}</span>
+              <div className="bg-amber-500/15 p-3 rounded-2xl border border-amber-400/35 text-xs sm:text-sm text-amber-100 text-left flex items-start gap-2.5 backdrop-blur-xs">
+                <Sparkles className="w-4.5 h-4.5 text-amber-300 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <span className="font-bold text-white text-xs sm:text-sm">Mẹo luyện: </span>
+                  <span className="text-xs sm:text-sm">{assessment.adviceText}</span>
                 </div>
               </div>
             )}
 
             {/* 2 nút hành động: Đọc lại & Phân tích chi tiết */}
-            <div className="flex items-center justify-center gap-2.5 pt-1">
+            <div className="flex items-center justify-center gap-3 pt-1">
               <button
                 type="button"
                 onClick={onStartListening}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#EF233C] to-[#FF9100] text-white font-bold text-xs sm:text-sm shadow-lg shadow-red-500/35 hover:shadow-xl hover:shadow-red-500/45 active:scale-95 transition-all cursor-pointer border border-white/20"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#EF233C] to-[#FF9100] text-white font-bold text-sm sm:text-base shadow-lg shadow-red-500/35 hover:shadow-xl hover:shadow-red-500/45 active:scale-95 transition-all cursor-pointer border border-white/20"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 <span>Đọc lại</span>
               </button>
 
               <button
                 type="button"
                 onClick={onOpenAnalysis}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm border border-white/25 backdrop-blur-md shadow-sm active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm sm:text-base border border-white/25 backdrop-blur-md shadow-sm active:scale-95 transition-all cursor-pointer"
               >
-                <BarChart3 className="w-4 h-4 text-amber-300" />
+                <BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-300" />
                 <span>Phân tích chi tiết</span>
               </button>
             </div>

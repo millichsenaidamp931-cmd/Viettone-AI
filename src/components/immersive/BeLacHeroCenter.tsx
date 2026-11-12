@@ -140,7 +140,7 @@ export const BeLacHeroCenter: React.FC<BeLacHeroCenterProps> = ({
           )}
 
           {mascotState === 'idle' && (
-            <div className="absolute -top-1 -right-2 px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-amber-300 text-[9px] font-black uppercase tracking-wider shadow-xs border border-amber-400/30 opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all">
+            <div className="absolute -top-1 -right-2 px-2.5 py-0.5 rounded-full bg-slate-900/85 backdrop-blur-xs text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-xs border border-amber-400/35 opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all">
               😎 Cool
             </div>
           )}
@@ -148,10 +148,10 @@ export const BeLacHeroCenter: React.FC<BeLacHeroCenterProps> = ({
       </div>
 
       {/* 2. Tên nhân vật: ✦ Bé Lạc ✦ */}
-      <div className="mt-1 flex items-center justify-center gap-2 font-black text-sm sm:text-base tracking-wide drop-shadow-[0_2px_8px_rgba(255,145,0,0.6)]">
-        <span className="text-amber-300 text-xs sm:text-sm">✦</span>
-        <span className="text-white font-black text-base sm:text-lg">Bé Lạc</span>
-        <span className="text-amber-300 text-xs sm:text-sm">✦</span>
+      <div className="mt-1 flex items-center justify-center gap-2 font-black tracking-wide drop-shadow-[0_2px_8px_rgba(255,145,0,0.6)]">
+        <span className="text-amber-300 text-sm sm:text-base">✦</span>
+        <span className="text-white font-black text-lg sm:text-xl">Bé Lạc</span>
+        <span className="text-amber-300 text-sm sm:text-base">✦</span>
       </div>
 
       {/* 3. Dải hiển thị Thanh mục tiêu kẹp giữa 2 dải sóng âm */}
@@ -175,19 +175,19 @@ export const BeLacHeroCenter: React.FC<BeLacHeroCenterProps> = ({
         <button
           type="button"
           onClick={handlePlaySample}
-          className="group inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/45 hover:bg-slate-900/60 backdrop-blur-md border border-white/25 shadow-lg shadow-black/25 hover:border-amber-400/60 transition-all cursor-pointer text-white"
+          className="group inline-flex items-center gap-2.5 px-4.5 py-2 rounded-full bg-slate-950/45 hover:bg-slate-900/60 backdrop-blur-md border border-white/25 shadow-lg shadow-black/25 hover:border-amber-400/60 transition-all cursor-pointer text-white"
           title={`Nghe phát âm chuẩn: ${selectedTone.word}`}
         >
-          <div className="w-5 h-5 rounded-full bg-red-500/30 text-amber-300 flex items-center justify-center group-hover:scale-110 transition-transform border border-amber-400/40">
+          <div className="w-5.5 h-5.5 rounded-full bg-red-500/30 text-amber-300 flex items-center justify-center group-hover:scale-110 transition-transform border border-amber-400/40">
             <Target className="w-3.5 h-3.5 text-amber-300" />
           </div>
-          <span className="text-xs sm:text-sm text-white/90 font-medium">
+          <span className="text-sm sm:text-base text-white/90 font-medium">
             Thanh mục tiêu:
           </span>
-          <span className="text-sm sm:text-base font-black text-[#FFB703] tracking-tight group-hover:underline drop-shadow-xs">
+          <span className="text-base sm:text-lg font-black text-[#FFB703] tracking-tight group-hover:underline drop-shadow-xs">
             {selectedTone.word}
           </span>
-          <Volume2 className="w-3.5 h-3.5 text-white/70 group-hover:text-amber-300 transition-colors" />
+          <Volume2 className="w-4 h-4 text-white/70 group-hover:text-amber-300 transition-colors" />
         </button>
 
         {/* Sóng âm bên phải */}
