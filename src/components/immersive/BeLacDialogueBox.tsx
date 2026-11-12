@@ -24,6 +24,7 @@ interface BeLacDialogueBoxProps {
   f0ScoreResult: F0ScoreResult | null;
   onOpenAnalysis: () => void;
   encourageVoiceText?: string | null;
+  praiseVoiceText?: string | null;
 }
 
 export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
@@ -39,6 +40,7 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
   f0ScoreResult,
   onOpenAnalysis,
   encourageVoiceText = null,
+  praiseVoiceText = null,
 }) => {
   // Sóng âm thanh hai bên Microphone
   const [leftWave, setLeftWave] = useState<number[]>([10, 16, 24, 14, 20, 28, 18, 12]);
@@ -132,7 +134,7 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
       case 'confident_match':
         return {
           headline: `Bé Lạc nghe được thanh ${selectedTone.name.replace('Thanh ', '').toUpperCase()}!`,
-          subheadline: 'AI đã nhận diện trùng thanh bạn chọn. Rất xuất sắc!',
+          subheadline: praiseVoiceText || 'AI đã nhận diện trùng thanh bạn chọn. Rất xuất sắc!',
           subtext: 'Đường nét cao độ của bạn khớp rất tốt với mẫu tham chiếu.',
         };
       case 'confident_mismatch': {
@@ -140,7 +142,7 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
         const targetName = selectedTone.name.replace('Thanh ', '').toUpperCase();
         return {
           headline: `Bé Lạc nghe giống thanh ${predName} hơn!`,
-          subheadline: `Bạn đang luyện thanh ${targetName}. Hãy nghe lại mẫu và thử lại nhé!`,
+          subheadline: encourageVoiceText || `Bạn đang luyện thanh ${targetName}. Hãy nghe lại mẫu và thử lại nhé!`,
           subtext: 'Cùng nghe âm mẫu chuẩn để điều chỉnh đường cao độ nào.',
         };
       }
@@ -290,6 +292,16 @@ export const BeLacDialogueBox: React.FC<BeLacDialogueBoxProps> = ({
           <p className="text-xs sm:text-sm text-white/85 max-w-lg mx-auto pt-0.5 leading-relaxed">
             {content.subtext}
           </p>
+
+          {/* Lời thoại cổ vũ hoặc khích lệ bằng giọng nói của Bé Lạc */}
+          {(praiseVoiceText || encourageVoiceText) && !isListening && (
+            <div className="pt-2 flex items-center justify-center animate-in fade-in zoom-in-95 duration-200">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400/25 via-orange-500/20 to-red-500/25 border border-amber-300/40 text-amber-200 text-xs sm:text-sm font-bold shadow-md">
+                <span className="text-sm">🗣️</span>
+                <span>Bé Lạc: "{praiseVoiceText || encourageVoiceText}"</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 3. BẢNG KẾT QUẢ AI ĐỐI CHIẾU TRỰC TIẾP */}

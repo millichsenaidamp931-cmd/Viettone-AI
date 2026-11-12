@@ -40,8 +40,10 @@ import {
   playCelebrationChime,
   playPracticeWelcomeAudio,
   playRandomEncourageAudio,
+  playRandomPraiseAudio,
   stopAnyVoiceAudio,
   ENCOURAGE_VOICE_MESSAGES,
+  PRAISE_VOICE_MESSAGES,
 } from './utils/audioSynthesizer';
 
 // Immersive Redesign Components
@@ -91,6 +93,7 @@ export default function App() {
   const handleNavigate = (route: AppRoute, toneId?: string) => {
     stopAnyVoiceAudio();
     setEncourageVoiceText(null);
+    setPraiseVoiceText(null);
     const queryParams = toneId ? { tone: toneId } : undefined;
     navigateTo(route, queryParams);
     setCurrentRoute(route);
@@ -160,6 +163,7 @@ export default function App() {
   const [f0ScoreResult, setF0ScoreResult] = useState<F0ScoreResult | null>(null);
   const [feedbackAssessment, setFeedbackAssessment] = useState<FeedbackAssessment | null>(null);
   const [encourageVoiceText, setEncourageVoiceText] = useState<string | null>(null);
+  const [praiseVoiceText, setPraiseVoiceText] = useState<string | null>(null);
 
   // Tiến trình và lịch sử lưu trữ cục bộ (100% localStorage)
   const [historyAttempts, setHistoryAttempts] = useState<PracticeAttempt[]>([]);
@@ -411,7 +415,16 @@ export default function App() {
         } else {
           playCelebrationChime('success');
         }
+
+        // Phát ngẫu nhiên 1 trong 5 file âm thanh MP3 cổ vũ người dùng khi đọc đúng
+        window.setTimeout(() => {
+          const chosenPraiseIdx = playRandomPraiseAudio();
+          if (chosenPraiseIdx > 0 && chosenPraiseIdx <= PRAISE_VOICE_MESSAGES.length) {
+            setPraiseVoiceText(PRAISE_VOICE_MESSAGES[chosenPraiseIdx - 1]);
+          }
+        }, 320);
       } else {
+        setPraiseVoiceText(null);
         // Người dùng chưa nói đúng (isMatch = false)
         // Phát âm thanh khích lệ nhẹ nhàng và ngẫu nhiên 1 trong 3 file audio hướng dẫn của Bé Lạc
         playCelebrationChime('encourage');
@@ -433,6 +446,7 @@ export default function App() {
   const handleStartListening = async () => {
     stopAnyVoiceAudio();
     setEncourageVoiceText(null);
+    setPraiseVoiceText(null);
     setIsIntroActive(false);
     setIsAnalyzing(false);
     setPermissionError(null);
@@ -472,6 +486,7 @@ export default function App() {
   const handleNextTone = () => {
     stopAnyVoiceAudio();
     setEncourageVoiceText(null);
+    setPraiseVoiceText(null);
     const currentIndex = VIETNAMESE_TONES.findIndex((t) => t.id === selectedTone.id);
     const nextIndex = (currentIndex + 1) % VIETNAMESE_TONES.length;
     const nextTone = VIETNAMESE_TONES[nextIndex];
@@ -486,6 +501,7 @@ export default function App() {
     if (isListening) return;
     stopAnyVoiceAudio();
     setEncourageVoiceText(null);
+    setPraiseVoiceText(null);
     const tone = VIETNAMESE_TONES.find((t) => t.id === toneId);
     if (tone) {
       setSelectedTone(tone);
@@ -583,6 +599,7 @@ export default function App() {
               f0ScoreResult={f0ScoreResult}
               onOpenAnalysis={() => setIsAnalysisOpen(true)}
               encourageVoiceText={encourageVoiceText}
+              praiseVoiceText={praiseVoiceText}
             />
 
             {/* C. Sáu thẻ thanh điệu dưới cùng (ma, má, mà, mả, mã, mạ) */}
@@ -592,6 +609,7 @@ export default function App() {
                 if (isListening) return;
                 stopAnyVoiceAudio();
                 setEncourageVoiceText(null);
+                setPraiseVoiceText(null);
                 setSelectedTone(tone);
                 setUserContour(null);
                 setF0ScoreResult(null);

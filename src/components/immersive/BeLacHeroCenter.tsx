@@ -64,12 +64,6 @@ export const BeLacHeroCenter: React.FC<BeLacHeroCenterProps> = ({
         showBadge={true}
       />
 
-      {/* 2. Tên nhân vật: ✦ Bé Lạc ✦ */}
-      <div className="mt-1 flex items-center justify-center gap-2 font-black tracking-wide drop-shadow-[0_2px_8px_rgba(255,145,0,0.6)]">
-        <span className="text-amber-300 text-sm sm:text-base">✦</span>
-        <span className="text-white font-black text-lg sm:text-xl">Bé Lạc</span>
-        <span className="text-amber-300 text-sm sm:text-base">✦</span>
-      </div>
 
       {/* 3. Dải hiển thị Thanh mục tiêu kẹp giữa 2 dải sóng âm */}
       <div className="mt-2.5 flex items-center justify-center gap-2 sm:gap-3.5 w-full">

@@ -161,6 +161,7 @@ function fallbackSynthesizer(toneId: string) {
 
 let practiceIntroAudio: HTMLAudioElement | null = null;
 let currentEncourageAudio: HTMLAudioElement | null = null;
+let currentPraiseAudio: HTMLAudioElement | null = null;
 
 export const ENCOURAGE_VOICE_MESSAGES = [
   'Bạn thử xem phần Mẹo luyện rồi đọc lại nhé! Bé Lạc tin bạn sẽ tiến bộ hơn đấy!',
@@ -168,7 +169,16 @@ export const ENCOURAGE_VOICE_MESSAGES = [
   'Mình cùng xem biểu đồ cao độ F0 để tìm điểm khác biệt nhé! Sau đó thử phát âm thêm một lần nữa nào!',
 ] as const;
 
+export const PRAISE_VOICE_MESSAGES = [
+  'Tuyệt vời quá! Bạn phát âm chuẩn thanh điệu này rồi đó!',
+  'Đúng rồi nè! Giọng bạn đọc nghe rất tự nhiên và chuẩn xác!',
+  'Bé Lạc khen bạn! Bạn bắt nhịp thanh điệu cực kỳ chuẩn luôn!',
+  'Xuất sắc lắm! Cứ giữ vững phong độ này nhé, bạn đang tiến bộ rất nhanh!',
+  'Quá chuẩn luôn! Cùng Bé Lạc tiếp tục chinh phục các thanh tiếp theo nào!',
+] as const;
+
 let lastEncourageIndex = -1;
+let lastPraiseIndex = -1;
 
 export function stopAnyVoiceAudio() {
   if (currentPlayingAudio) {
@@ -195,6 +205,14 @@ export function stopAnyVoiceAudio() {
       // Ignore
     }
   }
+  if (currentPraiseAudio) {
+    try {
+      currentPraiseAudio.pause();
+      currentPraiseAudio.currentTime = 0;
+    } catch {
+      // Ignore
+    }
+  }
   if (typeof window !== 'undefined' && window.speechSynthesis) {
     try {
       window.speechSynthesis.cancel();
@@ -202,6 +220,82 @@ export function stopAnyVoiceAudio() {
       // Ignore
     }
   }
+}
+
+/**
+ * Phát ngẫu nhiên 1 trong 5 file âm thanh MP3 cổ vũ người dùng khi đọc đúng âm
+ */
+export function playRandomPraiseAudio(onEnded?: () => void): number {
+  if (!isSoundFxEnabled()) return -1;
+
+  stopAnyVoiceAudio();
+
+  // Chọn ngẫu nhiên 1 trong 5 file audio cổ vũ (tránh lặp lại câu vừa phát trước đó nếu có thể)
+  const choices = [1, 2, 3, 4, 5];
+  const candidates = choices.filter((c) => c !== lastPraiseIndex);
+  const chosenIndex = candidates[Math.floor(Math.random() * candidates.length)] || choices[0];
+  lastPraiseIndex = chosenIndex;
+
+  const key = `praise-${chosenIndex}`;
+
+  const audio = new Audio();
+  let preferredExt = 'mp3';
+  if (audio.canPlayType && audio.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, '')) {
+    preferredExt = 'ogg';
+  } else if (audio.canPlayType && audio.canPlayType('audio/mpeg').replace(/no/, '')) {
+    preferredExt = 'mp3';
+  } else if (audio.canPlayType && audio.canPlayType('audio/wav').replace(/no/, '')) {
+    preferredExt = 'wav';
+  }
+
+  audio.src = `/assets/tones/${key}.${preferredExt}`;
+  audio.preload = 'auto';
+
+  const fallbackUrls = [
+    `/assets/tones/${key}.ogg`,
+    `/assets/tones/${key}.mp3`,
+    `/assets/tones/${key}.wav`,
+    `/viettone-home/assets/${key}.mp3`,
+  ];
+  let fbIdx = 0;
+  audio.addEventListener('error', () => {
+    if (fbIdx < fallbackUrls.length) {
+      audio.src = fallbackUrls[fbIdx++];
+      audio.load();
+      audio.play().catch(() => {});
+    }
+  });
+
+  if (onEnded) {
+    const handleEnded = () => {
+      audio.removeEventListener('ended', handleEnded);
+      onEnded();
+    };
+    audio.addEventListener('ended', handleEnded);
+  }
+
+  currentPraiseAudio = audio;
+
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch((err) => {
+      console.warn(`Autoplay ${key} bị hạn chế, dùng Web Speech API dự phòng:`, err);
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        try {
+          const utterance = new SpeechSynthesisUtterance(PRAISE_VOICE_MESSAGES[chosenIndex - 1]);
+          utterance.lang = 'vi-VN';
+          utterance.rate = 1.0;
+          const viVoices = window.speechSynthesis.getVoices().filter((v) => v.lang.includes('vi'));
+          if (viVoices.length > 0) utterance.voice = viVoices[0];
+          window.speechSynthesis.speak(utterance);
+        } catch {
+          // Ignore
+        }
+      }
+    });
+  }
+
+  return chosenIndex;
 }
 
 export function playRandomEncourageAudio(onEnded?: () => void): number {
